@@ -4,9 +4,20 @@ import { showError, showSuccess } from "@/utils/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CreatePostForm from "@/components/CreatePostForm";
 import CommentSection from "@/components/CommentSection";
-import { MessageSquare, Heart, Share2 } from "lucide-react";
+import { MessageSquare, Heart, Share2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom"; // Import Link
+import { Link } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Post {
   id: string;
@@ -19,7 +30,7 @@ interface Post {
     full_name: string;
     profile_picture_url: string | null;
   };
-  likes: { id: string; user_id: string }[]; // Updated to include user_id
+  likes: { id: string; user_id: string }[];
   comments: { id: string }[];
 }
 
@@ -133,6 +144,27 @@ const SocialFeed = () => {
     }
   };
 
+  const handleDeletePost = async (postId: string) => {
+    try {
+      const { error } = await supabase
+        .from("posts")
+        .delete()
+        .eq("id", postId)
+        .eq("author_id", currentUserId); // Ensure only author can delete
+
+      if (error) {
+        showError("Failed to delete post: " + error.message);
+        console.error("Error deleting post:", error);
+      } else {
+        showSuccess("Post deleted successfully!");
+        fetchPosts(); // Refresh posts
+      }
+    } catch (error: any) {
+      showError("An unexpected error occurred: " + error.message);
+      console.error("Unexpected error:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
       <div className="w-full max-w-2xl">
@@ -155,7 +187,7 @@ const SocialFeed = () => {
             ) : (
               posts.map((post) => (
                 <Card key={post.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
-                  <CardHeader className="flex flex-row items-center space-x-3">
+                  <CardHeader className="flex flex-row items-center justify-between">
                     <Link to={`/profile/${post.author_id}`} className="flex items-center space-x-3 group">
                       <img
                         src={post.profiles?.profile_picture_url || `https://api.dicebear.com/7.x/initials/svg?seed=${post.profiles?.full_name || 'User'}`}
@@ -167,6 +199,29 @@ const SocialFeed = () => {
                         <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(post.created_at).toLocaleString()}</p>
                       </div>
                     </Link>
+                    {currentUserId === post.author_id && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete your post and any associated comments.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeletePost(post.id)} className="bg-red-600 hover:bg-red-700">
+                              Yes, delete post
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {post.content_text && <p className="text-gray-800 dark:text-gray-200">{post.content_text}</p>}

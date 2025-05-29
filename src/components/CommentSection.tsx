@@ -7,6 +7,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
+import { Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Profile {
   full_name: string;
@@ -113,6 +125,27 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
     }
   };
 
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      const { error } = await supabase
+        .from("comments")
+        .delete()
+        .eq("id", commentId)
+        .eq("author_id", currentUserId); // Ensure only author can delete
+
+      if (error) {
+        showError("Failed to delete comment: " + error.message);
+        console.error("Error deleting comment:", error);
+      } else {
+        showSuccess("Comment deleted successfully!");
+        fetchComments(); // Refresh comments
+      }
+    } catch (error: any) {
+      showError("An unexpected error occurred: " + error.message);
+      console.error("Unexpected error:", error);
+    }
+  };
+
   return (
     <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
       <h3 className="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">Comments ({comments.length})</h3>
@@ -130,11 +163,34 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
                   alt={comment.profiles?.full_name || "User"}
                   className="w-8 h-8 rounded-full object-cover"
                 />
-                <div>
+                <div className="flex-grow">
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{comment.profiles?.full_name || "Unknown User"}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(comment.created_at).toLocaleString()}</p>
                   <p className="text-gray-800 dark:text-gray-200 mt-1">{comment.comment_text}</p>
                 </div>
+                {currentUserId === comment.author_id && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 ml-2">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete your comment.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteComment(comment.id)} className="bg-red-600 hover:bg-red-700">
+                          Yes, delete comment
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
               </div>
             ))
           )}
