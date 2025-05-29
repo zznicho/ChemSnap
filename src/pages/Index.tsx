@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import Home from "./Home";
-import { updateUserStreak } from "@/utils/streakUtils"; // Import the streak utility
+import Login from "./Login"; // Import the Login component
+import { updateUserStreak } from "@/utils/streakUtils";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -27,8 +28,6 @@ const Index = () => {
         } else if (profile) {
           await updateUserStreak(session.user.id, profile.current_streak, profile.last_activity_date);
         }
-      } else {
-        navigate("/login");
       }
       setLoading(false);
     };
@@ -38,7 +37,7 @@ const Index = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (!session) {
-        navigate("/login");
+        // No need to navigate here, the component will render Login directly
       } else {
         // Re-run streak update if session changes (e.g., after login/signup)
         checkSessionAndProfile();
@@ -46,7 +45,7 @@ const Index = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, []); // Removed navigate from dependency array as it's not directly used in the effect's logic for re-runs
 
   if (loading) {
     return (
@@ -57,7 +56,7 @@ const Index = () => {
   }
 
   if (!session) {
-    return null;
+    return <Login />; // Render the Login component directly if no session
   }
 
   return (
