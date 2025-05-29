@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { CheckCircle2, XCircle } from "lucide-react";
+import { updateUserStreak } from "@/utils/streakUtils"; // Import streak utility
 
 interface Question {
   id: string;
@@ -120,6 +121,19 @@ const QuizDetails = () => {
       console.error("Error saving quiz result:", insertError);
     } else {
       showSuccess(`Quiz completed! You scored ${correctPoints} out of ${totalPossiblePoints}. Result saved.`);
+
+      // Update user streak after successful quiz submission
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("current_streak, last_activity_date")
+        .eq("id", currentUserId)
+        .single();
+
+      if (profileError) {
+        console.error("Error fetching profile for streak update:", profileError);
+      } else if (profile) {
+        await updateUserStreak(currentUserId, profile.current_streak, profile.last_activity_date);
+      }
     }
   };
 
