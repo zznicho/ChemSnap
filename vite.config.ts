@@ -14,5 +14,5 @@ export default defineConfig(() => ({
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
   },
-  base: '/', // Changed to absolute path for Vercel deployment
+  base: './', // Changed to relative path for Vercel deployment
 }));
