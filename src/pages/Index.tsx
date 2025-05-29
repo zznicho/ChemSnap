@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import Home from "./Home";
 import Login from "./Login";
 import { updateUserStreak } from "@/utils/streakUtils";
 
@@ -12,39 +11,41 @@ const Index = () => {
 
   useEffect(() => {
     const checkSessionAndProfile = async () => {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      setSession(session);
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      setSession(currentSession);
 
-      if (session) {
+      if (currentSession) {
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("current_streak, last_activity_date")
-          .eq("id", session.user.id)
+          .eq("id", currentSession.user.id)
           .single();
 
         if (profileError) {
           console.error("Error fetching profile for streak update:", profileError);
         } else if (profile) {
-          await updateUserStreak(session.user.id, profile.current_streak, profile.last_activity_date);
+          await updateUserStreak(currentSession.user.id, profile.current_streak, profile.last_activity_date);
         }
+        // If session exists, navigate to the actual home route under Layout
+        navigate("/home", { replace: true });
+      } else {
+        setLoading(false); // Only set loading to false if no session, so Login can render
       }
-      setLoading(false);
     };
 
     checkSessionAndProfile();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (!session) {
-        // No need to navigate here, the component will render Login directly
+      if (session) {
+        checkSessionAndProfile(); // Re-run streak update and navigation if session changes
       } else {
-        // Re-run streak update if session changes (e.g., after login/signup)
-        checkSessionAndProfile();
+        setLoading(false); // If signed out, stop loading and allow Login to render
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]); // Added navigate to dependency array as it's used in the effect
 
   if (loading) {
     return (
@@ -54,12 +55,14 @@ const Index = () => {
     );
   }
 
+  // If no session and not loading, render the Login component
   if (!session) {
     return <Login />;
   }
 
-  // If there's a session, render Home. The Layout is now handled by App.tsx routing.
-  return <Home />;
+  // This component should ideally redirect and not render anything if session exists
+  // The actual content will be rendered by the /home route within the Layout
+  return null;
 };
 
 export default Index;

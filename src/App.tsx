@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import Index from "./pages/Index"; // This will now primarily handle session check and redirection
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -22,7 +22,7 @@ import TeacherQuizManagement from "./pages/TeacherQuizManagement";
 import ClassDiscussionPage from "./pages/ClassDiscussionPage";
 import MyQuizResults from "./pages/MyQuizResults";
 import TeacherQuizAnalytics from "./pages/TeacherQuizAnalytics";
-import Layout from "./components/Layout";
+import Layout from "./components/Layout"; // Layout component
 import { ThemeProvider } from "@/components/theme-provider";
 
 const queryClient = new QueryClient();
@@ -35,14 +35,16 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            {/* The Index component now acts as a session gate, rendering Home or Login */}
-            <Route path="/" element={<Index />} /> 
-            {/* All routes that need the Layout are nested here */}
+
+            {/* Index route acts as a session gate */}
+            <Route path="/" element={<Index />} />
+
+            {/* Authenticated routes wrapped by Layout */}
             <Route element={<Layout />}>
-              {/* Home is now the default route within the Layout */}
-              <Route index element={<Home />} /> 
+              <Route path="/home" element={<Home />} /> {/* Explicit home route */}
               <Route path="/news" element={<News />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/quizzes" element={<Quizzes />} />
@@ -58,6 +60,8 @@ const App = () => (
               <Route path="/my-quiz-results" element={<MyQuizResults />} />
               <Route path="/quiz-analytics" element={<TeacherQuizAnalytics />} />
             </Route>
+
+            {/* Catch-all for 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
