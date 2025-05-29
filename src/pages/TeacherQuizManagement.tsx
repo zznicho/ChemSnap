@@ -22,6 +22,9 @@ interface Quiz {
   difficulty: string | null;
   created_at: string;
   questions: Question[];
+  profiles?: { // Add profiles to Quiz interface for admin view
+    full_name: string;
+  };
 }
 
 interface Question {
@@ -105,8 +108,9 @@ const TeacherQuizManagement = () => {
         return;
       }
 
-      if (profile.role !== "teacher") {
-        showError("Access Denied: Only teachers can manage quizzes.");
+      // Allow teachers AND admins to access this page
+      if (profile.role !== "teacher" && profile.role !== "admin") {
+        showError("Access Denied: Only teachers and administrators can manage quizzes.");
         navigate("/");
         return;
       }
@@ -125,7 +129,7 @@ const TeacherQuizManagement = () => {
       return;
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("quizzes")
       .select(`
         id,
@@ -141,10 +145,19 @@ const TeacherQuizManagement = () => {
           options,
           correct_answer,
           explanation
+        ),
+        profiles (
+          full_name
         )
       `)
-      .eq("teacher_id", user.id)
       .order("created_at", { ascending: false });
+
+    // Admins can see all quizzes, teachers only their own
+    if (userRole === "teacher") {
+      query = query.eq("teacher_id", user.id);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       showError("Failed to fetch quizzes: " + error.message);
@@ -153,10 +166,10 @@ const TeacherQuizManagement = () => {
       setQuizzes(data as Quiz[]);
     }
     setLoadingQuizzes(false);
-  }, []);
+  }, [userRole]); // Depend on userRole to refetch if it changes
 
   useEffect(() => {
-    if (userRole === "teacher") {
+    if (userRole) { // Fetch quizzes once userRole is determined
       fetchQuizzes();
     }
   }, [userRole, fetchQuizzes]);
@@ -280,7 +293,7 @@ const TeacherQuizManagement = () => {
     );
   }
 
-  if (userRole !== "teacher") {
+  if (userRole !== "teacher" && userRole !== "admin") {
     return null; // Should have been redirected by now
   }
 
@@ -289,97 +302,99 @@ const TeacherQuizManagement = () => {
       <div className="w-full max-w-3xl">
         <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">Quiz Management</h1>
 
-        <div className="mb-8">
-          <Dialog open={isCreateQuizDialogOpen} onOpenChange={setIsCreateQuizDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="w-full">
-                <PlusCircle className="h-4 w-4 mr-2" /> Create New Quiz
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Create New Quiz</DialogTitle>
-              </DialogHeader>
-              <Form {...quizForm}>
-                <form onSubmit={quizForm.handleSubmit(onCreateQuiz)} className="space-y-4">
-                  <FormField
-                    control={quizForm.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Quiz Title</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Organic Chemistry Basics" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={quizForm.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description (Optional)</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Brief description of the quiz" className="min-h-[80px] resize-none" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={quizForm.control}
-                    name="subject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Subject</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+        {(userRole === "teacher" || userRole === "admin") && ( // Both teachers and admins can create quizzes
+          <div className="mb-8">
+            <Dialog open={isCreateQuizDialogOpen} onOpenChange={setIsCreateQuizDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <PlusCircle className="h-4 w-4 mr-2" /> Create New Quiz
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Create New Quiz</DialogTitle>
+                </DialogHeader>
+                <Form {...quizForm}>
+                  <form onSubmit={quizForm.handleSubmit(onCreateQuiz)} className="space-y-4">
+                    <FormField
+                      control={quizForm.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Quiz Title</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select subject" />
-                            </SelectTrigger>
+                            <Input placeholder="e.g., Organic Chemistry Basics" {...field} />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="chemistry">Chemistry</SelectItem>
-                            <SelectItem value="biology">Biology</SelectItem>
-                            <SelectItem value="physics">Physics</SelectItem>
-                            <SelectItem value="math">Math</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={quizForm.control}
-                    name="difficulty"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Difficulty (Optional)</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={quizForm.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description (Optional)</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select difficulty" />
-                            </SelectTrigger>
+                            <Textarea placeholder="Brief description of the quiz" className="min-h-[80px] resize-none" {...field} />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="easy">Easy</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="hard">Hard</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full">Create Quiz</Button>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={quizForm.control}
+                      name="subject"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Subject</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select subject" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="chemistry">Chemistry</SelectItem>
+                              <SelectItem value="biology">Biology</SelectItem>
+                              <SelectItem value="physics">Physics</SelectItem>
+                              <SelectItem value="math">Math</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={quizForm.control}
+                      name="difficulty"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Difficulty (Optional)</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select difficulty" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="easy">Easy</SelectItem>
+                              <SelectItem value="medium">Medium</SelectItem>
+                              <SelectItem value="hard">Hard</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full">Create Quiz</Button>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
 
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Your Quizzes</h2>
         {loadingQuizzes ? (
@@ -393,6 +408,9 @@ const TeacherQuizManagement = () => {
                 <Card key={quiz.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
                   <CardHeader>
                     <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{quiz.title}</CardTitle>
+                    {userRole === "admin" && quiz.profiles?.full_name && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Created by: {quiz.profiles.full_name}</p>
+                    )}
                     <div className="flex flex-wrap gap-2 mt-2 text-sm text-gray-600 dark:text-gray-400">
                       <span className="flex items-center"><BookOpen className="h-4 w-4 mr-1" /> {quiz.subject}</span>
                       {quiz.difficulty && <span className="flex items-center"><Award className="h-4 w-4 mr-1" /> {quiz.difficulty}</span>}
@@ -402,20 +420,24 @@ const TeacherQuizManagement = () => {
                   <CardContent className="space-y-3">
                     {quiz.description && <p className="text-gray-800 dark:text-gray-200">{quiz.description}</p>}
                     <div className="flex justify-end space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedQuizId(quiz.id);
-                          setIsAddQuestionDialogOpen(true);
-                          questionForm.reset(); // Reset form when opening for a new quiz
-                        }}
-                      >
-                        <PlusCircle className="h-4 w-4 mr-2" /> Add Question
-                      </Button>
-                      <Button variant="destructive" size="sm" onClick={() => handleDeleteQuiz(quiz.id)}>
-                        <Trash2 className="h-4 w-4 mr-2" /> Delete Quiz
-                      </Button>
+                      {(userRole === "teacher" || userRole === "admin") && ( // Both teachers and admins can add questions
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedQuizId(quiz.id);
+                            setIsAddQuestionDialogOpen(true);
+                            questionForm.reset(); // Reset form when opening for a new quiz
+                          }}
+                        >
+                          <PlusCircle className="h-4 w-4 mr-2" /> Add Question
+                        </Button>
+                      )}
+                      {(userRole === "teacher" || userRole === "admin") && ( // Both teachers and admins can delete quizzes
+                        <Button variant="destructive" size="sm" onClick={() => handleDeleteQuiz(quiz.id)}>
+                          <Trash2 className="h-4 w-4 mr-2" /> Delete Quiz
+                        </Button>
+                      )}
                     </div>
 
                     {quiz.questions.length > 0 && (
@@ -428,9 +450,11 @@ const TeacherQuizManagement = () => {
                                 <p className="font-medium text-gray-900 dark:text-gray-100">{index + 1}. {question.question_text}</p>
                                 <p className="text-xs text-gray-600 dark:text-gray-400">Correct: {question.correct_answer}</p>
                               </div>
-                              <Button variant="ghost" size="sm" onClick={() => handleDeleteQuestion(question.id)}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              {(userRole === "teacher" || userRole === "admin") && ( // Both teachers and admins can delete questions
+                                <Button variant="ghost" size="sm" onClick={() => handleDeleteQuestion(question.id)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
                             </li>
                           ))}
                         </ul>

@@ -16,6 +16,10 @@ interface QuizResult {
     subject: string;
     difficulty: string | null;
   };
+  profiles?: { // Add profiles to QuizResult interface for admin view
+    full_name: string;
+    email: string;
+  };
 }
 
 const MyQuizResults = () => {
@@ -47,8 +51,9 @@ const MyQuizResults = () => {
         return;
       }
 
-      if (profile.role !== "student") {
-        showError("Access Denied: Only students can view their quiz results.");
+      // Allow students AND admins to view this page
+      if (profile.role !== "student" && profile.role !== "admin") {
+        showError("Access Denied: Only students and administrators can view quiz results.");
         navigate("/");
         return;
       }
@@ -60,7 +65,7 @@ const MyQuizResults = () => {
   }, [navigate]);
 
   const fetchQuizResults = useCallback(async () => {
-    if (userRole !== "student") return; // Only fetch if user is a student
+    if (!userRole) return; // Only fetch if userRole is determined
 
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -69,7 +74,7 @@ const MyQuizResults = () => {
       return;
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("quiz_results")
       .select(`
         id,
@@ -80,10 +85,20 @@ const MyQuizResults = () => {
           title,
           subject,
           difficulty
+        ),
+        profiles (
+          full_name,
+          email
         )
       `)
-      .eq("user_id", user.id)
       .order("submitted_at", { ascending: false });
+
+    // Admins can see all quiz results, students only their own
+    if (userRole === "student") {
+      query = query.eq("user_id", user.id);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       showError("Failed to fetch quiz results: " + error.message);
@@ -95,7 +110,7 @@ const MyQuizResults = () => {
   }, [userRole]);
 
   useEffect(() => {
-    if (userRole === "student") { // Fetch results only after role is confirmed
+    if (userRole) { // Fetch results only after role is confirmed
       fetchQuizResults();
     }
   }, [userRole, fetchQuizResults]);
@@ -108,7 +123,7 @@ const MyQuizResults = () => {
     );
   }
 
-  if (userRole !== "student") {
+  if (userRole !== "student" && userRole !== "admin") {
     return null; // Should have been redirected by now
   }
 
@@ -128,6 +143,9 @@ const MyQuizResults = () => {
               <Card key={result.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
                 <CardHeader>
                   <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{result.quizzes.title}</CardTitle>
+                  {userRole === "admin" && result.profiles?.full_name && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Student: {result.profiles.full_name} ({result.profiles.email})</p>
+                  )}
                   <div className="flex flex-wrap gap-2 mt-2 text-sm text-gray-600 dark:text-gray-400">
                     <Badge variant="secondary">{result.quizzes.subject}</Badge>
                     {result.quizzes.difficulty && <Badge variant="secondary">{result.quizzes.difficulty}</Badge>}
