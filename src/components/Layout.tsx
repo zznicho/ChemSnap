@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Library, Users as UsersIcon, FlaskConical, BarChart2, Award, Settings } from "lucide-react"; // Import BarChart2 for analytics and Award
+import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Library, Users as UsersIcon, FlaskConical, BarChart2, Award, Settings, MessageSquareText } from "lucide-react"; // Import MessageSquareText for Social Feed
 import { Button } from "@/components/ui/button";
 import { MadeWithDyad } from "./made-with-dyad";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,7 +37,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   }, []);
 
   const navItems = [
-    { path: "/home", icon: HomeIcon, label: "Home" },
+    { path: "/home", icon: HomeIcon, label: "Home" }, // New Dashboard
+    { path: "/feed", icon: MessageSquareText, label: "Social Feed" }, // Renamed Social Feed
     { path: "/news", icon: Newspaper, label: "News" },
     { path: "/resources", icon: Book, label: "Resources" },
     { path: "/hsc-resources", icon: Library, label: "HSC Resources" },
@@ -49,12 +50,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   if (!loadingRole && userRole === "teacher") {
     navItems.push({ path: "/classes", icon: GraduationCap, label: "Classes" });
     navItems.push({ path: "/teacher-quizzes", icon: FlaskConical, label: "Manage Quizzes" });
-    navItems.push({ path: "/quiz-analytics", icon: BarChart2, label: "Quiz Analytics" }); // New link for teachers
+    navItems.push({ path: "/quiz-analytics", icon: BarChart2, label: "Quiz Analytics" });
   }
   // Add My Classes and My Quiz Results for students
   if (!loadingRole && userRole === "student") {
     navItems.push({ path: "/my-classes", icon: UsersIcon, label: "My Classes" });
-    navItems.push({ path: "/my-quiz-results", icon: Award, label: "My Quiz Results" }); // New link for students
+    navItems.push({ path: "/my-quiz-results", icon: Award, label: "My Quiz Results" });
   }
   // Add Admin Resources for admins
   if (!loadingRole && userRole === "admin") {
