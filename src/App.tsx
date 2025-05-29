@@ -16,7 +16,8 @@ import Profile from "./pages/Profile";
 import ClassManagement from "./pages/ClassManagement";
 import HSCResources from "./pages/HSCResources";
 import MyClasses from "./pages/MyClasses";
-import AssignmentDetails from "./pages/AssignmentDetails"; // Import AssignmentDetails
+import AssignmentDetails from "./pages/AssignmentDetails";
+import QuizDetails from "./pages/QuizDetails"; // Import QuizDetails
 import Layout from "./components/Layout";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -37,12 +38,13 @@ const App = () => (
               <Route path="/news" element={<News />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/quizzes" element={<Quizzes />} />
+              <Route path="/quizzes/:quizId" element={<QuizDetails />} /> {/* Add QuizDetails route */}
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/classes" element={<ClassManagement />} />
               <Route path="/hsc-resources" element={<HSCResources />} />
               <Route path="/my-classes" element={<MyClasses />} />
-              <Route path="/assignments/:assignmentId" element={<AssignmentDetails />} /> {/* Add AssignmentDetails route */}
+              <Route path="/assignments/:assignmentId" element={<AssignmentDetails />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
