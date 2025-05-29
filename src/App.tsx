@@ -15,14 +15,15 @@ import CalendarPage from "./pages/CalendarPage";
 import Profile from "./pages/Profile";
 import ClassManagement from "./pages/ClassManagement";
 import HSCResources from "./pages/HSCResources";
+import MyClasses from "./pages/MyClasses"; // Import MyClasses
 import Layout from "./components/Layout";
-import { ThemeProvider } from "@/components/theme-provider"; // Import ThemeProvider
+import { ThemeProvider } from "@/components/theme-provider";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme"> {/* Add ThemeProvider */}
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/classes" element={<ClassManagement />} />
               <Route path="/hsc-resources" element={<HSCResources />} />
+              <Route path="/my-classes" element={<MyClasses />} /> {/* Add MyClasses route */}
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

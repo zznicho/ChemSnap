@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Library } from "lucide-react";
+import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Library, Users as UsersIcon } from "lucide-react"; // Import UsersIcon
 import { Button } from "@/components/ui/button";
 import { MadeWithDyad } from "./made-with-dyad";
 import { supabase } from "@/integrations/supabase/client";
-import { ModeToggle } from "./mode-toggle"; // Import ModeToggle
+import { ModeToggle } from "./mode-toggle";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -49,6 +49,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   if (!loadingRole && userRole === "teacher") {
     navItems.push({ path: "/classes", icon: GraduationCap, label: "Classes" });
   }
+  // Add My Classes for students
+  if (!loadingRole && userRole === "student") {
+    navItems.push({ path: "/my-classes", icon: UsersIcon, label: "My Classes" });
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -57,8 +61,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="text-2xl font-extrabold text-primary dark:text-primary-foreground" style={{ fontFamily: 'Chemistry, sans-serif' }}>
           ChemSnap!
         </div>
-        <div className="flex items-center space-x-2"> {/* Wrap buttons in a div */}
-          <ModeToggle /> {/* Add ModeToggle here */}
+        <div className="flex items-center space-x-2">
+          <ModeToggle />
           <Link to="/profile">
             <Button variant="ghost" size="icon" className="rounded-full">
               <User className="h-6 w-6 text-gray-700 dark:text-gray-300" />
