@@ -31,6 +31,12 @@ export function ModeToggle() {
         <DropdownMenuItem onClick={() => setTheme("system")}>
           System
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("alkali")}>
+          Alkali
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("noble-gas")}>
+          Noble Gas
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
