@@ -8,6 +8,9 @@ import { Users, Award, CalendarDays, Hash } from "lucide-react";
 
 interface QuizWithResults extends Quiz {
   quiz_results: QuizResult[];
+  profiles?: { // Add profiles to QuizWithResults for admin view
+    full_name: string;
+  };
 }
 
 interface Quiz {
@@ -60,8 +63,9 @@ const TeacherQuizAnalytics = () => {
         return;
       }
 
-      if (profile.role !== "teacher") {
-        showError("Access Denied: Only teachers can view quiz analytics.");
+      // Allow teachers AND admins to view this page
+      if (profile.role !== "teacher" && profile.role !== "admin") {
+        showError("Access Denied: Only teachers and administrators can view quiz analytics.");
         navigate("/");
         return;
       }
@@ -73,7 +77,7 @@ const TeacherQuizAnalytics = () => {
   }, [navigate]);
 
   const fetchTeacherQuizzesAndResults = useCallback(async () => {
-    if (userRole !== "teacher") return;
+    if (!userRole) return; // Only fetch if userRole is determined
 
     setLoadingAnalytics(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -82,7 +86,7 @@ const TeacherQuizAnalytics = () => {
       return;
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("quizzes")
       .select(`
         id,
@@ -100,10 +104,20 @@ const TeacherQuizAnalytics = () => {
             full_name,
             email
           )
+        ),
+        profiles (
+          full_name
         )
       `)
-      .eq("teacher_id", user.id)
       .order("created_at", { ascending: false });
+
+    // Admins can see all quizzes, teachers only their own
+    if (userRole === "teacher") {
+      query = query.eq("teacher_id", user.id);
+    }
+    // If userRole is "admin", no additional filter is needed, as the initial query already selects all.
+
+    const { data, error } = await query;
 
     if (error) {
       showError("Failed to fetch quiz analytics: " + error.message);
@@ -115,7 +129,7 @@ const TeacherQuizAnalytics = () => {
   }, [userRole]);
 
   useEffect(() => {
-    if (userRole === "teacher") {
+    if (userRole) { // Fetch results only after role is confirmed
       fetchTeacherQuizzesAndResults();
     }
   }, [userRole, fetchTeacherQuizzesAndResults]);
@@ -128,7 +142,7 @@ const TeacherQuizAnalytics = () => {
     );
   }
 
-  if (userRole !== "teacher") {
+  if (userRole !== "teacher" && userRole !== "admin") {
     return null; // Should have been redirected by now
   }
 
@@ -158,6 +172,9 @@ const TeacherQuizAnalytics = () => {
                   <Card key={quiz.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
                     <CardHeader>
                       <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{quiz.title}</CardTitle>
+                      {userRole === "admin" && quiz.profiles?.full_name && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Created by: {quiz.profiles.full_name}</p>
+                      )}
                       <div className="flex flex-wrap gap-2 mt-2 text-sm text-gray-600 dark:text-gray-400">
                         <Badge variant="secondary">{quiz.subject}</Badge>
                         {quiz.difficulty && <Badge variant="secondary">{quiz.difficulty}</Badge>}
