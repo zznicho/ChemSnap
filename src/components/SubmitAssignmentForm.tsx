@@ -8,12 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
+import { useFileUpload } from "@/hooks/useFileUpload"; // Import the file upload hook
 
 const formSchema = z.object({
   submission_text: z.string().max(1000, { message: "Submission text cannot exceed 1000 characters." }).optional(),
   file_url: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal("")),
 }).refine((data) => data.submission_text || data.file_url, {
-  message: "Please provide either text or a file URL for your submission.",
+  message: "Please provide either text or a file URL/upload for your submission.",
 });
 
 interface SubmitAssignmentFormProps {
@@ -28,6 +29,9 @@ interface SubmitAssignmentFormProps {
 const SubmitAssignmentForm = ({ assignmentId, onSubmissionSuccess, initialSubmission }: SubmitAssignmentFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const { uploadFile, loading: uploadingFile, error: uploadError } = useFileUpload("public_files");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -63,6 +67,19 @@ const SubmitAssignmentForm = ({ assignmentId, onSubmissionSuccess, initialSubmis
         return;
       }
 
+      let submissionFileUrl = values.file_url || null;
+
+      if (selectedFile) {
+        const uploadedFileUrl = await uploadFile(selectedFile, "assignment_submissions");
+        if (uploadedFileUrl) {
+          submissionFileUrl = uploadedFileUrl;
+        } else {
+          showError(uploadError || "Failed to upload submission file.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const { data: existingSubmission, error: fetchError } = await supabase
         .from("assignment_submissions")
         .select("id")
@@ -83,7 +100,7 @@ const SubmitAssignmentForm = ({ assignmentId, onSubmissionSuccess, initialSubmis
           .from("assignment_submissions")
           .update({
             submission_text: values.submission_text || null,
-            file_url: values.file_url || null,
+            file_url: submissionFileUrl,
             submitted_at: new Date().toISOString(),
           })
           .eq("id", existingSubmission.id);
@@ -93,6 +110,7 @@ const SubmitAssignmentForm = ({ assignmentId, onSubmissionSuccess, initialSubmis
           console.error("Error updating submission:", error);
         } else {
           showSuccess("Submission updated successfully!");
+          setSelectedFile(null);
           onSubmissionSuccess();
         }
       } else {
@@ -103,7 +121,7 @@ const SubmitAssignmentForm = ({ assignmentId, onSubmissionSuccess, initialSubmis
             assignment_id: assignmentId,
             student_id: currentUserId,
             submission_text: values.submission_text || null,
-            file_url: values.file_url || null,
+            file_url: submissionFileUrl,
           });
 
         if (error) {
@@ -112,6 +130,7 @@ const SubmitAssignmentForm = ({ assignmentId, onSubmissionSuccess, initialSubmis
         } else {
           showSuccess("Assignment submitted successfully!");
           form.reset();
+          setSelectedFile(null);
           onSubmissionSuccess();
         }
       }
@@ -144,25 +163,39 @@ const SubmitAssignmentForm = ({ assignmentId, onSubmissionSuccess, initialSubmis
             </FormItem>
           )}
         />
+        <FormItem>
+          <FormLabel>Upload File (Optional)</FormLabel>
+          <FormControl>
+            <Input
+              type="file"
+              onChange={(e) => setSelectedFile(e.target.files ? e.target.files[0] : null)}
+              disabled={uploadingFile || isSubmitting}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
         <FormField
           control={form.control}
           name="file_url"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>File URL (Optional)</FormLabel>
+              <FormLabel>Or File URL (Optional)</FormLabel>
               <FormControl>
                 <Input
                   type="url"
                   placeholder="https://example.com/your-document.pdf"
                   {...field}
+                  disabled={!!selectedFile || uploadingFile || isSubmitting}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting..." : (initialSubmission ? "Update Submission" : "Submit Assignment")}
+        {(uploadingFile || isSubmitting) && <p className="text-sm text-gray-500">Uploading file...</p>}
+        {uploadError && <p className="text-sm text-red-500">{uploadError}</p>}
+        <Button type="submit" className="w-full" disabled={isSubmitting || uploadingFile}>
+          {isSubmitting || uploadingFile ? "Submitting..." : (initialSubmission ? "Update Submission" : "Submit Assignment")}
         </Button>
       </form>
     </Form>

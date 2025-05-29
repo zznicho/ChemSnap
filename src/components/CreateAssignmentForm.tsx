@@ -13,6 +13,7 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
+import { useFileUpload } from "@/hooks/useFileUpload"; // Import the file upload hook
 
 const formSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters." }).max(100, { message: "Title cannot exceed 100 characters." }),
@@ -32,6 +33,9 @@ interface CreateAssignmentFormProps {
 
 const CreateAssignmentForm = ({ classId, onAssignmentCreated }: CreateAssignmentFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const { uploadFile, loading: uploadingFile, error: uploadError } = useFileUpload("public_files");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -55,6 +59,19 @@ const CreateAssignmentForm = ({ classId, onAssignmentCreated }: CreateAssignment
         return;
       }
 
+      let assignmentFileUrl = values.file_url || null;
+
+      if (selectedFile) {
+        const uploadedFileUrl = await uploadFile(selectedFile, "assignment_files");
+        if (uploadedFileUrl) {
+          assignmentFileUrl = uploadedFileUrl;
+        } else {
+          showError(uploadError || "Failed to upload assignment file.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const { error } = await supabase
         .from("assignments")
         .insert({
@@ -64,7 +81,7 @@ const CreateAssignmentForm = ({ classId, onAssignmentCreated }: CreateAssignment
           description: values.description || null,
           due_date: values.due_date ? values.due_date.toISOString() : null,
           total_points: values.total_points || 0,
-          file_url: values.file_url || null,
+          file_url: assignmentFileUrl,
         });
 
       if (error) {
@@ -73,6 +90,7 @@ const CreateAssignmentForm = ({ classId, onAssignmentCreated }: CreateAssignment
       } else {
         showSuccess("Assignment created successfully!");
         form.reset();
+        setSelectedFile(null);
         onAssignmentCreated();
       }
     } catch (error: any) {
@@ -164,21 +182,34 @@ const CreateAssignmentForm = ({ classId, onAssignmentCreated }: CreateAssignment
             </FormItem>
           )}
         />
+        <FormItem>
+          <FormLabel>Upload Attachment (Optional)</FormLabel>
+          <FormControl>
+            <Input
+              type="file"
+              onChange={(e) => setSelectedFile(e.target.files ? e.target.files[0] : null)}
+              disabled={uploadingFile || isSubmitting}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
         <FormField
           control={form.control}
           name="file_url"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Attachment URL (Optional)</FormLabel>
+              <FormLabel>Or Attachment URL (Optional)</FormLabel>
               <FormControl>
-                <Input type="url" placeholder="e.g., https://example.com/worksheet.pdf" {...field} />
+                <Input type="url" placeholder="e.g., https://example.com/worksheet.pdf" {...field} disabled={!!selectedFile || uploadingFile || isSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Creating..." : "Create Assignment"}
+        {(uploadingFile || isSubmitting) && <p className="text-sm text-gray-500">Uploading file...</p>}
+        {uploadError && <p className="text-sm text-red-500">{uploadError}</p>}
+        <Button type="submit" className="w-full" disabled={isSubmitting || uploadingFile}>
+          {isSubmitting || uploadingFile ? "Creating..." : "Create Assignment"}
         </Button>
       </form>
     </Form>

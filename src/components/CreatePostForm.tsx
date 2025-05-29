@@ -4,17 +4,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input"; // Import Input for URLs
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"; // Import FormLabel
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
+import { useFileUpload } from "@/hooks/useFileUpload"; // Import the file upload hook
 
 const formSchema = z.object({
-  content_text: z.string().max(500, { message: "Post content cannot exceed 500 characters." }).optional(), // Make text optional if image/video is present
+  content_text: z.string().max(500, { message: "Post content cannot exceed 500 characters." }).optional(),
   content_image_url: z.string().url({ message: "Please enter a valid image URL." }).optional().or(z.literal("")),
   content_video_url: z.string().url({ message: "Please enter a valid video URL." }).optional().or(z.literal("")),
 }).refine((data) => data.content_text || data.content_image_url || data.content_video_url, {
-  message: "Post cannot be empty. Please provide text, an image URL, or a video URL.",
+  message: "Post cannot be empty. Please provide text, an image URL/file, or a video URL/file.",
 });
 
 interface CreatePostFormProps {
@@ -23,6 +24,10 @@ interface CreatePostFormProps {
 
 const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
+
+  const { uploadFile, loading: uploadingFile, error: uploadError } = useFileUpload("public_files");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,13 +49,38 @@ const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
         return;
       }
 
+      let imageUrl = values.content_image_url || null;
+      let videoUrl = values.content_video_url || null;
+
+      if (selectedImageFile) {
+        const uploadedImageUrl = await uploadFile(selectedImageFile, "post_images");
+        if (uploadedImageUrl) {
+          imageUrl = uploadedImageUrl;
+        } else {
+          showError(uploadError || "Failed to upload image.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      if (selectedVideoFile) {
+        const uploadedVideoUrl = await uploadFile(selectedVideoFile, "post_videos");
+        if (uploadedVideoUrl) {
+          videoUrl = uploadedVideoUrl;
+        } else {
+          showError(uploadError || "Failed to upload video.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const { error } = await supabase
         .from("posts")
         .insert({
           author_id: user.id,
           content_text: values.content_text || null,
-          content_image_url: values.content_image_url || null,
-          content_video_url: values.content_video_url || null,
+          content_image_url: imageUrl,
+          content_video_url: videoUrl,
         });
 
       if (error) {
@@ -59,6 +89,8 @@ const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
       } else {
         showSuccess("Post created successfully!");
         form.reset();
+        setSelectedImageFile(null);
+        setSelectedVideoFile(null);
         onPostCreated(); // Callback to refresh posts in Home component
       }
     } catch (error: any) {
@@ -90,42 +122,70 @@ const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
             </FormItem>
           )}
         />
+        <FormItem>
+          <FormLabel>Upload Image (Optional)</FormLabel>
+          <FormControl>
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setSelectedImageFile(e.target.files ? e.target.files[0] : null)}
+              disabled={uploadingFile || isSubmitting}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
         <FormField
           control={form.control}
           name="content_image_url"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Image URL (Optional)</FormLabel>
+              <FormLabel>Or Image URL (Optional)</FormLabel>
               <FormControl>
                 <Input
                   type="url"
                   placeholder="https://example.com/image.jpg"
                   {...field}
+                  disabled={!!selectedImageFile || uploadingFile || isSubmitting}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+        <FormItem>
+          <FormLabel>Upload Video (Optional)</FormLabel>
+          <FormControl>
+            <Input
+              type="file"
+              accept="video/*"
+              onChange={(e) => setSelectedVideoFile(e.target.files ? e.target.files[0] : null)}
+              disabled={uploadingFile || isSubmitting}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
         <FormField
           control={form.control}
           name="content_video_url"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Video URL (Optional)</FormLabel>
+              <FormLabel>Or Video URL (Optional)</FormLabel>
               <FormControl>
                 <Input
                   type="url"
                   placeholder="https://example.com/video.mp4"
                   {...field}
+                  disabled={!!selectedVideoFile || uploadingFile || isSubmitting}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Posting..." : "Post"}
+        {(uploadingFile || isSubmitting) && <p className="text-sm text-gray-500">Uploading files...</p>}
+        {uploadError && <p className="text-sm text-red-500">{uploadError}</p>}
+        <Button type="submit" className="w-full" disabled={isSubmitting || uploadingFile}>
+          {isSubmitting || uploadingFile ? "Posting..." : "Post"}
         </Button>
       </form>
     </Form>
