@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -13,7 +13,8 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
-import { useFileUpload } from "@/hooks/useFileUpload"; // Import the file upload hook
+import { useFileUpload } from "@/hooks/useFileUpload";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const formSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters." }).max(100, { message: "Title cannot exceed 100 characters." }),
@@ -24,16 +25,24 @@ const formSchema = z.object({
     z.number().int().min(0, { message: "Points cannot be negative." }).max(1000, { message: "Points cannot exceed 1000." }).optional().nullable(),
   ),
   file_url: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal("")),
+  class_id: z.string().min(1, { message: "Class is required." }), // Added class_id to schema
 });
 
 interface CreateAssignmentFormProps {
-  classId: string;
   onAssignmentCreated: () => void;
+  onClose: () => void; // Added onClose prop
 }
 
-const CreateAssignmentForm = ({ classId, onAssignmentCreated }: CreateAssignmentFormProps) => {
+interface Class {
+  id: string;
+  name: string;
+}
+
+const CreateAssignmentForm = ({ onAssignmentCreated, onClose }: CreateAssignmentFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [teacherClasses, setTeacherClasses] = useState<Class[]>([]);
 
   const { uploadFile, loading: uploadingFile, error: uploadError } = useFileUpload("public_files");
 
@@ -45,8 +54,41 @@ const CreateAssignmentForm = ({ classId, onAssignmentCreated }: CreateAssignment
       due_date: undefined,
       total_points: 100,
       file_url: "",
+      class_id: "", // Default value for class_id
     },
   });
+
+  useEffect(() => {
+    const fetchUserAndClasses = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching profile for assignment form:", profileError);
+        } else if (profile) {
+          setUserRole(profile.role);
+          if (profile.role === "teacher") {
+            const { data: classesData, error: classesError } = await supabase
+              .from("classes")
+              .select("id, name")
+              .eq("teacher_id", user.id);
+
+            if (classesError) {
+              console.error("Error fetching teacher classes:", classesError);
+            } else {
+              setTeacherClasses(classesData || []);
+            }
+          }
+        }
+      }
+    };
+    fetchUserAndClasses();
+  }, []);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -75,7 +117,7 @@ const CreateAssignmentForm = ({ classId, onAssignmentCreated }: CreateAssignment
       const { error } = await supabase
         .from("assignments")
         .insert({
-          class_id: classId,
+          class_id: values.class_id, // Use class_id from form
           teacher_id: user.id,
           title: values.title,
           description: values.description || null,
@@ -92,6 +134,7 @@ const CreateAssignmentForm = ({ classId, onAssignmentCreated }: CreateAssignment
         form.reset();
         setSelectedFile(null);
         onAssignmentCreated();
+        onClose(); // Close dialog on success
       }
     } catch (error: any) {
       showError("An unexpected error occurred: " + error.message);
@@ -105,6 +148,34 @@ const CreateAssignmentForm = ({ classId, onAssignmentCreated }: CreateAssignment
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New Assignment</h2>
+        {userRole === "teacher" && (
+          <FormField
+            control={form.control}
+            name="class_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Assign to Class</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a class" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {teacherClasses.length === 0 ? (
+                      <SelectItem value="" disabled>No classes available</SelectItem>
+                    ) : (
+                      teacherClasses.map((cls) => (
+                        <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name="title"
