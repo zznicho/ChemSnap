@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index"; // This will now primarily handle session check and redirection
+import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -22,7 +22,7 @@ import TeacherQuizManagement from "./pages/TeacherQuizManagement";
 import ClassDiscussionPage from "./pages/ClassDiscussionPage";
 import MyQuizResults from "./pages/MyQuizResults";
 import TeacherQuizAnalytics from "./pages/TeacherQuizAnalytics";
-import Layout from "./components/Layout"; // Layout component
+import ProtectedRoute from "./components/ProtectedRoute"; // Import ProtectedRoute
 import { ThemeProvider } from "@/components/theme-provider";
 
 const queryClient = new QueryClient();
@@ -39,12 +39,12 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
 
-            {/* Index route acts as a session gate */}
+            {/* Index route acts as a session gate and redirects */}
             <Route path="/" element={<Index />} />
 
-            {/* Authenticated routes wrapped by Layout */}
-            <Route element={<Layout />}>
-              <Route path="/home" element={<Home />} /> {/* Explicit home route */}
+            {/* Authenticated routes wrapped by ProtectedRoute */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/home" element={<Home />} />
               <Route path="/news" element={<News />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/quizzes" element={<Quizzes />} />
