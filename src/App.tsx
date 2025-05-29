@@ -22,7 +22,8 @@ import TeacherQuizManagement from "./pages/TeacherQuizManagement";
 import ClassDiscussionPage from "./pages/ClassDiscussionPage";
 import MyQuizResults from "./pages/MyQuizResults";
 import TeacherQuizAnalytics from "./pages/TeacherQuizAnalytics";
-import ProtectedRoute from "./components/ProtectedRoute"; // Import ProtectedRoute
+import AdminResourcesPage from "./pages/AdminResourcesPage"; // Import AdminResourcesPage
+import ProtectedRoute from "./components/ProtectedRoute";
 import { ThemeProvider } from "@/components/theme-provider";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => (
               <Route path="/classes/:classId/discussions" element={<ClassDiscussionPage />} />
               <Route path="/my-quiz-results" element={<MyQuizResults />} />
               <Route path="/quiz-analytics" element={<TeacherQuizAnalytics />} />
+              <Route path="/admin/resources" element={<AdminResourcesPage />} /> {/* New admin route */}
             </Route>
 
             {/* Catch-all for 404 */}
