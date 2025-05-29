@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom"; // Import useParams
+import { useNavigate, useParams, Link } from "react-router-dom"; // Import Link
 import { showError, showSuccess } from "@/utils/toast";
 import ProfileEditForm from "@/components/ProfileEditForm";
 import AccountActions from "@/components/AccountActions";
@@ -251,7 +251,7 @@ const Profile = () => {
       }
     } catch (error: any) {
       showError("An unexpected error occurred during account deletion: " + error.message);
-      console.error("Unexpected error during deletion:", error);
+      console.error("Unexpected error:", error);
     }
   };
 
@@ -527,7 +527,7 @@ const Profile = () => {
               You will be logged out and need to confirm the change via the link in the email.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <form onSubmit={forgotPasswordForm.handleSubmit(handleEmailChangeSubmit)} className="space-y-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="newEmail" className="text-right">
                 New Email
@@ -541,17 +541,17 @@ const Profile = () => {
                 disabled={isEmailChanging}
               />
             </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline" disabled={isEmailChanging}>
-                Cancel
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline" disabled={isEmailChanging}>
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button type="submit" disabled={isEmailChanging || !newEmail}>
+                {isEmailChanging ? "Sending..." : "Change Email"}
               </Button>
-            </DialogClose>
-            <Button type="submit" onClick={handleEmailChangeSubmit} disabled={isEmailChanging || !newEmail}>
-              {isEmailChanging ? "Sending..." : "Change Email"}
-            </Button>
-          </DialogFooter>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
