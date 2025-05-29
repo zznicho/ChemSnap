@@ -2,8 +2,9 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react"; // Import useCallback
 import { showError } from "@/utils/toast";
+import CreatePostForm from "@/components/CreatePostForm"; // Import the new component
 
 interface Post {
   id: string;
@@ -20,12 +21,11 @@ const Home = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("posts")
-        .select(`
+  const fetchPosts = useCallback(async () => { // Wrap fetchPosts in useCallback
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("posts")
+      .select(`
           id,
           content_text,
           author_id,
@@ -35,29 +35,32 @@ const Home = () => {
             profile_picture_url
           )
         `)
-        .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false });
 
-      if (error) {
-        showError("Failed to fetch posts: " + error.message);
-        console.error("Error fetching posts:", error);
-      } else {
-        setPosts(data as Post[]);
-      }
-      setLoading(false);
-    };
+    if (error) {
+      showError("Failed to fetch posts: " + error.message);
+      console.error("Error fetching posts:", error);
+    } else {
+      setPosts(data as Post[]);
+    }
+    setLoading(false);
+  }, []); // Empty dependency array as it doesn't depend on any props/state
 
+  useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [fetchPosts]); // Add fetchPosts to useEffect dependencies
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center pb-20">
       <div className="w-full max-w-2xl p-4">
         <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">ChemSnap! Feed</h1>
 
+        <CreatePostForm onPostCreated={fetchPosts} /> {/* Add the new component here */}
+
         {loading ? (
-          <p className="text-center text-gray-600 dark:text-gray-400">Loading posts...</p>
+          <p className="text-center text-gray-600 dark:text-gray-400 mt-6">Loading posts...</p>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-6 mt-6"> {/* Added mt-6 for spacing */}
             {posts.length === 0 ? (
               <p className="text-center text-gray-600 dark:text-gray-400">No posts yet. Be the first to share!</p>
             ) : (
