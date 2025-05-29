@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap } from "lucide-react"; // Import GraduationCap
+import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Library } from "lucide-react"; // Import Library icon
 import { Button } from "@/components/ui/button";
 import { MadeWithDyad } from "./made-with-dyad";
-import { supabase } from "@/integrations/supabase/client"; // Import supabase
+import { supabase } from "@/integrations/supabase/client";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -39,6 +39,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: "/", icon: HomeIcon, label: "Home" },
     { path: "/news", icon: Newspaper, label: "News" },
     { path: "/resources", icon: Book, label: "Resources" },
+    { path: "/hsc-resources", icon: Library, label: "HSC Resources" }, // New nav item
     { path: "/quizzes", icon: Brain, label: "Quizzes" },
     { path: "/calendar", icon: CalendarDays, label: "Calendar" },
   ];

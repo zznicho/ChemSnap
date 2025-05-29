@@ -13,8 +13,9 @@ import Resources from "./pages/Resources";
 import Quizzes from "./pages/Quizzes";
 import CalendarPage from "./pages/CalendarPage";
 import Profile from "./pages/Profile";
-import ClassManagement from "./pages/ClassManagement"; // Import ClassManagement
-import Layout from "./components/Layout"; // Import the Layout component
+import ClassManagement from "./pages/ClassManagement";
+import HSCResources from "./pages/HSCResources"; // Import HSCResources
+import Layout from "./components/Layout";
 
 const queryClient = new QueryClient();
 
@@ -27,18 +28,16 @@ const App = () => (
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          {/* The Index route now handles authentication and renders Layout + Home */}
           <Route path="/" element={<Index />} />
-          {/* Routes wrapped by Layout */}
           <Route element={<Layout />}>
             <Route path="/news" element={<News />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/quizzes" element={<Quizzes />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/classes" element={<ClassManagement />} /> {/* New route for Class Management */}
+            <Route path="/classes" element={<ClassManagement />} />
+            <Route path="/hsc-resources" element={<HSCResources />} /> {/* New route for HSC Resources */}
           </Route>
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
