@@ -2,6 +2,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 
 export const updateUserStreak = async (userId: string, currentStreak: number, lastActivityDate: string | null) => {
+  // First, fetch the user's role
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .single();
+
+  if (profileError) {
+    console.error("Error fetching profile for streak update:", profileError);
+    return;
+  }
+
+  // Only update streak for students
+  if (profile.role !== "student") {
+    console.log(`Streak update skipped for non-student user ${userId} (Role: ${profile.role}).`);
+    return;
+  }
+
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Normalize to start of day
 

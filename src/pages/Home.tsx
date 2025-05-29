@@ -229,8 +229,10 @@ const Home = () => {
             />
             <div>
               <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{userProfile.full_name}</CardTitle>
-              <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">{userProfile.role}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Current Streak: {userProfile.current_streak} days 🔥</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">Role: {userProfile.role}</p>
+              {userProfile.role === "student" && (
+                <p className="text-sm text-gray-600 dark:text-gray-400">Current Streak: {userProfile.current_streak} days 🔥</p>
+              )}
             </div>
           </CardHeader>
         </Card>
@@ -350,14 +352,14 @@ const Home = () => {
                           Subject: {quiz.subject} {quiz.difficulty && `(${quiz.difficulty})`}
                         </p>
                         <Button variant="link" size="sm" className="p-0 h-auto" asChild>
-                          <Link to={`/teacher-quizzes`}>Manage Quiz</Link>
+                          <Link to={`/quizzes`}>Manage Quiz</Link>
                         </Button>
                       </li>
                     ))}
                   </ul>
                 )}
                 <Button variant="link" className="w-full mt-4" asChild>
-                  <Link to="/teacher-quizzes">View All Quizzes</Link>
+                  <Link to="/quizzes">View All Quizzes</Link>
                 </Button>
               </CardContent>
             </Card>
