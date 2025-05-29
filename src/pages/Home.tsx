@@ -5,19 +5,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState, useCallback } from "react";
 import { showError, showSuccess } from "@/utils/toast";
 import CreatePostForm from "@/components/CreatePostForm";
-import CommentSection from "@/components/CommentSection"; // Import CommentSection
-import { ThumbsUp } from "lucide-react"; // Import ThumbsUp icon
+import CommentSection from "@/components/CommentSection";
+import { ThumbsUp } from "lucide-react";
 
 interface Post {
   id: string;
-  content_text: string;
+  content_text: string | null; // Can be null if only image/video
+  content_image_url: string | null; // New field
+  content_video_url: string | null; // New field
   author_id: string;
   created_at: string;
   profiles: {
     full_name: string;
     profile_picture_url: string;
   };
-  likes: { id: string, user_id: string }[]; // Add user_id to likes array
+  likes: { id: string, user_id: string }[];
 }
 
 const Home = () => {
@@ -40,6 +42,8 @@ const Home = () => {
       .select(`
           id,
           content_text,
+          content_image_url,
+          content_video_url,
           author_id,
           created_at,
           profiles (
@@ -140,7 +144,23 @@ const Home = () => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-gray-800 dark:text-gray-200">{post.content_text}</p>
+                      {post.content_text && <p className="text-gray-800 dark:text-gray-200 mb-2">{post.content_text}</p>}
+                      {post.content_image_url && (
+                        <img
+                          src={post.content_image_url}
+                          alt="Post image"
+                          className="w-full h-auto max-h-96 object-contain rounded-md mb-2"
+                        />
+                      )}
+                      {post.content_video_url && (
+                        <video
+                          src={post.content_video_url}
+                          controls
+                          className="w-full h-auto max-h-96 object-contain rounded-md mb-2"
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                      )}
                       <div className="flex justify-end mt-4 space-x-2">
                         <Button
                           variant="ghost"
@@ -153,7 +173,7 @@ const Home = () => {
                           Like
                         </Button>
                       </div>
-                      <CommentSection postId={post.id} /> {/* Integrate CommentSection here */}
+                      <CommentSection postId={post.id} />
                     </CardContent>
                   </Card>
                 );
