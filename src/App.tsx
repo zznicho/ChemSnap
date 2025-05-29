@@ -13,6 +13,7 @@ import Resources from "./pages/Resources";
 import Quizzes from "./pages/Quizzes";
 import CalendarPage from "./pages/CalendarPage";
 import Profile from "./pages/Profile";
+import ClassManagement from "./pages/ClassManagement"; // Import ClassManagement
 import Layout from "./components/Layout"; // Import the Layout component
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/quizzes" element={<Quizzes />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/classes" element={<ClassManagement />} /> {/* New route for Class Management */}
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User } from "lucide-react";
+import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap } from "lucide-react"; // Import GraduationCap
 import { Button } from "@/components/ui/button";
 import { MadeWithDyad } from "./made-with-dyad";
+import { supabase } from "@/integrations/supabase/client"; // Import supabase
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,6 +11,29 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [loadingRole, setLoadingRole] = useState(true);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching user role:", error);
+        } else if (profile) {
+          setUserRole(profile.role);
+        }
+      }
+      setLoadingRole(false);
+    };
+    fetchUserRole();
+  }, []);
 
   const navItems = [
     { path: "/", icon: HomeIcon, label: "Home" },
@@ -18,6 +42,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: "/quizzes", icon: Brain, label: "Quizzes" },
     { path: "/calendar", icon: CalendarDays, label: "Calendar" },
   ];
+
+  // Add Class Management for teachers
+  if (!loadingRole && userRole === "teacher") {
+    navItems.push({ path: "/classes", icon: GraduationCap, label: "Classes" });
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
