@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch"; // Import Switch component
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, BookOpen, Hash, Award, Edit, Trash2 } from "lucide-react";
+import { PlusCircle, BookOpen, Hash, Award, Edit, Trash2, Eye, EyeOff } from "lucide-react";
 
 interface Quiz {
   id: string;
@@ -21,6 +22,7 @@ interface Quiz {
   subject: string;
   difficulty: string | null;
   created_at: string;
+  is_published: boolean; // Add is_published
   questions: Question[];
   profiles?: { // Add profiles to Quiz interface for admin view
     full_name: string;
@@ -34,6 +36,7 @@ interface Question {
   options: string[];
   correct_answer: string;
   explanation: string | null;
+  points: number; // Add points
 }
 
 const quizFormSchema = z.object({
@@ -41,6 +44,7 @@ const quizFormSchema = z.object({
   description: z.string().max(500, { message: "Description cannot exceed 500 characters." }).optional(),
   subject: z.string().min(1, { message: "Subject is required." }),
   difficulty: z.string().optional(),
+  is_published: z.boolean().default(true), // Add is_published to schema
 });
 
 const questionFormSchema = z.object({
@@ -49,6 +53,10 @@ const questionFormSchema = z.object({
   options: z.string().min(1, { message: "At least one option is required." }).transform(val => val.split(',').map(s => s.trim()).filter(Boolean)),
   correct_answer: z.string().min(1, { message: "Correct answer is required." }),
   explanation: z.string().max(500, { message: "Explanation cannot exceed 500 characters." }).optional(),
+  points: z.preprocess(
+    (val) => (val === "" ? 1 : Number(val)), // Default to 1 if empty
+    z.number().int().min(1, { message: "Points must be at least 1." }).max(100, { message: "Points cannot exceed 100." })
+  ),
 }).refine(data => data.options.includes(data.correct_answer), {
   message: "Correct answer must be one of the provided options.",
   path: ["correct_answer"],
@@ -71,6 +79,7 @@ const TeacherQuizManagement = () => {
       description: "",
       subject: "",
       difficulty: "",
+      is_published: true, // Default to published
     },
   });
 
@@ -82,6 +91,7 @@ const TeacherQuizManagement = () => {
       options: "",
       correct_answer: "",
       explanation: "",
+      points: 1, // Default points
     },
   });
 
@@ -138,13 +148,15 @@ const TeacherQuizManagement = () => {
         subject,
         difficulty,
         created_at,
+        is_published,
         questions (
           id,
           question_text,
           question_type,
           options,
           correct_answer,
-          explanation
+          explanation,
+          points
         ),
         profiles (
           full_name
@@ -190,6 +202,7 @@ const TeacherQuizManagement = () => {
           subject: values.subject,
           difficulty: values.difficulty || null,
           teacher_id: user.id,
+          is_published: values.is_published,
         });
 
       if (error) {
@@ -222,6 +235,7 @@ const TeacherQuizManagement = () => {
           options: values.options,
           correct_answer: values.correct_answer,
           explanation: values.explanation || null,
+          points: values.points, // Insert points
         });
 
       if (error) {
@@ -239,8 +253,28 @@ const TeacherQuizManagement = () => {
     }
   };
 
+  const handleTogglePublish = async (quizId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("quizzes")
+        .update({ is_published: !currentStatus })
+        .eq("id", quizId);
+
+      if (error) {
+        showError("Failed to update quiz status: " + error.message);
+        console.error("Error updating quiz status:", error);
+      } else {
+        showSuccess(`Quiz ${!currentStatus ? 'published' : 'hidden'} successfully!`);
+        fetchQuizzes();
+      }
+    } catch (error: any) {
+      showError("An unexpected error occurred: " + error.message);
+      console.error("Unexpected error:", error);
+    }
+  };
+
   const handleDeleteQuiz = async (quizId: string) => {
-    if (!window.confirm("Are you sure you want to delete this quiz and all its questions?")) {
+    if (!window.confirm("Are you sure you want to delete this quiz and all its questions? This action cannot be undone.")) {
       return;
     }
     try {
@@ -263,7 +297,7 @@ const TeacherQuizManagement = () => {
   };
 
   const handleDeleteQuestion = async (questionId: string) => {
-    if (!window.confirm("Are you sure you want to delete this question?")) {
+    if (!window.confirm("Are you sure you want to delete this question? This action cannot be undone.")) {
       return;
     }
     try {
@@ -388,6 +422,24 @@ const TeacherQuizManagement = () => {
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={quizForm.control}
+                      name="is_published"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                          <div className="space-y-0.5">
+                            <FormLabel>Publish Quiz</FormLabel>
+                            <FormMessage />
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                     <Button type="submit" className="w-full">Create Quiz</Button>
                   </form>
                 </Form>
@@ -415,6 +467,10 @@ const TeacherQuizManagement = () => {
                       <span className="flex items-center"><BookOpen className="h-4 w-4 mr-1" /> {quiz.subject}</span>
                       {quiz.difficulty && <span className="flex items-center"><Award className="h-4 w-4 mr-1" /> {quiz.difficulty}</span>}
                       <span className="flex items-center"><Hash className="h-4 w-4 mr-1" /> {quiz.questions.length} Questions</span>
+                      <span className="flex items-center">
+                        {quiz.is_published ? <Eye className="h-4 w-4 mr-1 text-green-500" /> : <EyeOff className="h-4 w-4 mr-1 text-red-500" />}
+                        {quiz.is_published ? "Published" : "Hidden"}
+                      </span>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
@@ -433,6 +489,16 @@ const TeacherQuizManagement = () => {
                           <PlusCircle className="h-4 w-4 mr-2" /> Add Question
                         </Button>
                       )}
+                      {(userRole === "teacher" || userRole === "admin") && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleTogglePublish(quiz.id, quiz.is_published)}
+                        >
+                          {quiz.is_published ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+                          {quiz.is_published ? "Hide Quiz" : "Publish Quiz"}
+                        </Button>
+                      )}
                       {(userRole === "teacher" || userRole === "admin") && ( // Both teachers and admins can delete quizzes
                         <Button variant="destructive" size="sm" onClick={() => handleDeleteQuiz(quiz.id)}>
                           <Trash2 className="h-4 w-4 mr-2" /> Delete Quiz
@@ -448,7 +514,7 @@ const TeacherQuizManagement = () => {
                             <li key={question.id} className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md flex justify-between items-center">
                               <div className="flex-grow">
                                 <p className="font-medium text-gray-900 dark:text-gray-100">{index + 1}. {question.question_text}</p>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">Correct: {question.correct_answer}</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">Correct: {question.correct_answer} | Points: {question.points}</p>
                               </div>
                               {(userRole === "teacher" || userRole === "admin") && ( // Both teachers and admins can delete questions
                                 <Button variant="ghost" size="sm" onClick={() => handleDeleteQuestion(question.id)}>
@@ -544,6 +610,19 @@ const TeacherQuizManagement = () => {
                       <FormLabel>Explanation (Optional)</FormLabel>
                       <FormControl>
                         <Textarea placeholder="Explain the correct answer" className="min-h-[60px] resize-none" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={questionForm.control}
+                  name="points"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Points for this Question</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="e.g., 1" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

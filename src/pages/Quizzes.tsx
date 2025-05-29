@@ -10,7 +10,9 @@ interface Quiz {
   subject: string;
   difficulty: string | null;
   created_at: string;
-  questions: { id: string }[]; // To count questions
+  is_published: boolean; // Add is_published
+  questions: { id: string; points: number }[]; // To count questions and sum points
+  totalPoints: number; // Calculated total points
 }
 
 const Quizzes = () => {
@@ -28,8 +30,10 @@ const Quizzes = () => {
         subject,
         difficulty,
         created_at,
-        questions (id)
+        is_published,
+        questions (id, points)
       `)
+      .eq("is_published", true) // Only fetch published quizzes
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -39,6 +43,7 @@ const Quizzes = () => {
       setQuizzes(data.map(quiz => ({
         ...quiz,
         questionCount: quiz.questions.length,
+        totalPoints: quiz.questions.reduce((sum, q) => sum + q.points, 0), // Calculate total points
       })) as Quiz[]);
     }
     setLoading(false);
@@ -71,7 +76,8 @@ const Quizzes = () => {
                   description={quiz.description}
                   subject={quiz.subject}
                   difficulty={quiz.difficulty}
-                  questionCount={quiz.questionCount}
+                  questionCount={quiz.questions.length}
+                  totalPoints={quiz.totalPoints} // Pass total points to QuizCard
                 />
               ))
             )}
