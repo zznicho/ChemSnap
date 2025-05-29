@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Library } from "lucide-react"; // Import Library icon
+import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Library } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MadeWithDyad } from "./made-with-dyad";
 import { supabase } from "@/integrations/supabase/client";
+import { ModeToggle } from "./mode-toggle"; // Import ModeToggle
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -39,7 +40,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: "/", icon: HomeIcon, label: "Home" },
     { path: "/news", icon: Newspaper, label: "News" },
     { path: "/resources", icon: Book, label: "Resources" },
-    { path: "/hsc-resources", icon: Library, label: "HSC Resources" }, // New nav item
+    { path: "/hsc-resources", icon: Library, label: "HSC Resources" },
     { path: "/quizzes", icon: Brain, label: "Quizzes" },
     { path: "/calendar", icon: CalendarDays, label: "Calendar" },
   ];
@@ -56,11 +57,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="text-2xl font-extrabold text-primary dark:text-primary-foreground" style={{ fontFamily: 'Chemistry, sans-serif' }}>
           ChemSnap!
         </div>
-        <Link to="/profile">
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <User className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-          </Button>
-        </Link>
+        <div className="flex items-center space-x-2"> {/* Wrap buttons in a div */}
+          <ModeToggle /> {/* Add ModeToggle here */}
+          <Link to="/profile">
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <User className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+            </Button>
+          </Link>
+        </div>
       </header>
 
       {/* Main Content */}
