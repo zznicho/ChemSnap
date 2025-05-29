@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Library, Users as UsersIcon, FlaskConical, BarChart2, Award, Settings, MessageSquareText } from "lucide-react"; // Import MessageSquareText for Social Feed
+import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Users as UsersIcon, FlaskConical, Award, Settings, MessageSquareText } from "lucide-react"; // Import MessageSquareText for Social Feed
 import { Button } from "@/components/ui/button";
 import { MadeWithDyad } from "./made-with-dyad";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,19 +38,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const navItems = [
     { path: "/home", icon: HomeIcon, label: "Home" }, // New Dashboard
-    { path: "/feed", icon: MessageSquareText, label: "Social Feed" }, // Renamed Social Feed
+    { path: "/feed", icon: MessageSquareText, label: "Feed" }, // Renamed Social Feed
     { path: "/news", icon: Newspaper, label: "News" },
-    { path: "/resources", icon: Book, label: "Resources" },
-    { path: "/hsc-resources", icon: Library, label: "HSC Resources" },
-    { path: "/quizzes", icon: Brain, label: "Quizzes" },
+    { path: "/resources", icon: Book, label: "Resources" }, // Now includes HSC Resources
+    { path: "/quizzes", icon: Brain, label: "Quizzes" }, // Now includes Manage Quizzes & Analytics
     { path: "/calendar", icon: CalendarDays, label: "Calendar" },
   ];
 
   // Add Class Management for teachers
   if (!loadingRole && userRole === "teacher") {
     navItems.push({ path: "/classes", icon: GraduationCap, label: "Classes" });
-    navItems.push({ path: "/teacher-quizzes", icon: FlaskConical, label: "Manage Quizzes" });
-    navItems.push({ path: "/quiz-analytics", icon: BarChart2, label: "Quiz Analytics" });
+    // Removed /teacher-quizzes and /quiz-analytics as they are now tabs within /quizzes
   }
   // Add My Classes and My Quiz Results for students
   if (!loadingRole && userRole === "student") {
