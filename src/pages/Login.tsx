@@ -8,21 +8,45 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 const loginFormSchema = z.object({
   identifier: z.string().min(1, { message: "Email or Username is required." }),
   password: z.string().min(1, { message: "Password is required." }),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address." }),
+});
+
 const Login = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [isSendingResetEmail, setIsSendingResetEmail] = useState(false);
 
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
       identifier: "",
       password: "",
+    },
+  });
+
+  const forgotPasswordForm = useForm<z.infer<typeof forgotPasswordSchema>>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
     },
   });
 
@@ -80,6 +104,33 @@ const Login = () => {
     }
   };
 
+  const handleForgotPasswordSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
+    setIsSendingResetEmail(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+        redirectTo: `${window.location.origin}/login?reset=true`,
+      });
+
+      if (error) {
+        showError("Failed to send password reset email: " + error.message);
+        console.error("Error sending reset email:", error);
+      } else {
+        showSuccess("Password reset email sent! Check your inbox.");
+        setIsForgotPasswordDialogOpen(false);
+        setForgotPasswordEmail(""); // Clear the input
+      }
+    } catch (error: any) {
+      showError("An unexpected error occurred: " + error.message);
+      console.error("Unexpected error:", error);
+    } finally {
+      setIsSendingResetEmail(false);
+    }
+  };
+
+  const handleForgotUsername = () => {
+    showSuccess("You can log in using your email address. If you've forgotten both, please contact support.");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md">
@@ -117,10 +168,64 @@ const Login = () => {
             </Button>
           </form>
         </Form>
+        <div className="mt-4 text-center text-sm">
+          <Button variant="link" className="p-0 h-auto text-blue-600 hover:underline dark:text-blue-400" onClick={() => setIsForgotPasswordDialogOpen(true)}>
+            Forgot password?
+          </Button>
+          <span className="mx-2 text-gray-600 dark:text-gray-400">|</span>
+          <Button variant="link" className="p-0 h-auto text-blue-600 hover:underline dark:text-blue-400" onClick={handleForgotUsername}>
+            Forgot username?
+          </Button>
+        </div>
         <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
           Don't have an account? <a href="/signup" className="text-blue-600 hover:underline dark:text-blue-400">Sign Up</a>
         </p>
       </div>
+
+      {/* Forgot Password Dialog */}
+      <Dialog open={isForgotPasswordDialogOpen} onOpenChange={setIsForgotPasswordDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Enter your email address below. We'll send you a link to reset your password.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...forgotPasswordForm}>
+            <form onSubmit={forgotPasswordForm.handleSubmit(handleForgotPasswordSubmit)} className="space-y-4 py-4">
+              <FormField
+                control={forgotPasswordForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        id="forgotPasswordEmail"
+                        type="email"
+                        placeholder="your@example.com"
+                        {...field}
+                        disabled={isSendingResetEmail}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="outline" disabled={isSendingResetEmail}>
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button type="submit" disabled={isSendingResetEmail}>
+                  {isSendingResetEmail ? "Sending..." : "Send Reset Link"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
