@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import Layout from "@/components/Layout";
 import Home from "./Home";
-import Login from "./Login"; // Import the Login component
+import Login from "./Login";
 import { updateUserStreak } from "@/utils/streakUtils";
 
 const Index = () => {
@@ -45,7 +44,7 @@ const Index = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, []); // Removed navigate from dependency array as it's not directly used in the effect's logic for re-runs
+  }, []);
 
   if (loading) {
     return (
@@ -56,14 +55,11 @@ const Index = () => {
   }
 
   if (!session) {
-    return <Login />; // Render the Login component directly if no session
+    return <Login />;
   }
 
-  return (
-    <Layout>
-      <Home />
-    </Layout>
-  );
+  // If there's a session, render Home. The Layout is now handled by App.tsx routing.
+  return <Home />;
 };
 
 export default Index;

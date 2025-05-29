@@ -20,8 +20,8 @@ import AssignmentDetails from "./pages/AssignmentDetails";
 import QuizDetails from "./pages/QuizDetails";
 import TeacherQuizManagement from "./pages/TeacherQuizManagement";
 import ClassDiscussionPage from "./pages/ClassDiscussionPage";
-import MyQuizResults from "./pages/MyQuizResults"; // Import MyQuizResults
-import TeacherQuizAnalytics from "./pages/TeacherQuizAnalytics"; // Import TeacherQuizAnalytics
+import MyQuizResults from "./pages/MyQuizResults";
+import TeacherQuizAnalytics from "./pages/TeacherQuizAnalytics";
 import Layout from "./components/Layout";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -37,8 +37,12 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/" element={<Index />} />
+            {/* The Index component now acts as a session gate, rendering Home or Login */}
+            <Route path="/" element={<Index />} /> 
+            {/* All routes that need the Layout are nested here */}
             <Route element={<Layout />}>
+              {/* Home is now the default route within the Layout */}
+              <Route index element={<Home />} /> 
               <Route path="/news" element={<News />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/quizzes" element={<Quizzes />} />
@@ -51,8 +55,8 @@ const App = () => (
               <Route path="/assignments/:assignmentId" element={<AssignmentDetails />} />
               <Route path="/teacher-quizzes" element={<TeacherQuizManagement />} />
               <Route path="/classes/:classId/discussions" element={<ClassDiscussionPage />} />
-              <Route path="/my-quiz-results" element={<MyQuizResults />} /> {/* New route for student quiz results */}
-              <Route path="/quiz-analytics" element={<TeacherQuizAnalytics />} /> {/* New route for teacher quiz analytics */}
+              <Route path="/my-quiz-results" element={<MyQuizResults />} />
+              <Route path="/quiz-analytics" element={<TeacherQuizAnalytics />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
