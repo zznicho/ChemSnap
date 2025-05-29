@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import CreateClassForm from "@/components/CreateClassForm";
-import CreateAssignmentForm from "@/components/CreateAssignmentForm"; // Import CreateAssignmentForm
-import { Users, BookOpen, PlusCircle, FileText } from "lucide-react"; // Import FileText icon
+import CreateAssignmentForm from "@/components/CreateAssignmentForm";
+import { Users, BookOpen, PlusCircle, FileText } from "lucide-react";
 
 interface Class {
   id: string;
@@ -17,7 +17,8 @@ interface Class {
   description: string | null;
   class_code: string;
   created_at: string;
-  assignments: Assignment[]; // Add assignments to Class interface
+  assignments: Assignment[];
+  student_count: number; // Add student_count to Class interface
 }
 
 interface Assignment {
@@ -56,13 +57,13 @@ const ClassManagement = () => {
       if (profileError || !profile) {
         showError("Failed to fetch user role.");
         console.error("Error fetching profile:", profileError);
-        navigate("/"); // Redirect to home if role cannot be fetched
+        navigate("/");
         return;
       }
 
       if (profile.role !== "teacher") {
         showError("Access Denied: Only teachers can manage classes.");
-        navigate("/"); // Redirect if not a teacher
+        navigate("/");
         return;
       }
       setUserRole(profile.role);
@@ -96,7 +97,8 @@ const ClassManagement = () => {
           due_date,
           total_points,
           file_url
-        )
+        ),
+        class_enrollments(count)
       `)
       .eq("teacher_id", user.id)
       .order("created_at", { ascending: false });
@@ -105,7 +107,12 @@ const ClassManagement = () => {
       showError("Failed to fetch classes: " + error.message);
       console.error("Error fetching classes:", error);
     } else {
-      setClasses(data as Class[]);
+      // Map the data to include student_count
+      const classesWithCounts = data.map(cls => ({
+        ...cls,
+        student_count: cls.class_enrollments ? cls.class_enrollments.length : 0,
+      }));
+      setClasses(classesWithCounts as Class[]);
     }
     setLoadingClasses(false);
   }, []);
@@ -165,7 +172,7 @@ const ClassManagement = () => {
                   <CardContent className="space-y-2">
                     {cls.description && <p className="text-gray-800 dark:text-gray-200">{cls.description}</p>}
                     <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                      <span className="flex items-center"><Users className="h-4 w-4 mr-1" /> 0 Students</span> {/* Placeholder for student count */}
+                      <span className="flex items-center"><Users className="h-4 w-4 mr-1" /> {cls.student_count} Students</span>
                       <span className="flex items-center"><BookOpen className="h-4 w-4 mr-1" /> {cls.assignments.length} Assignments</span>
                     </div>
                     <div className="mt-4">

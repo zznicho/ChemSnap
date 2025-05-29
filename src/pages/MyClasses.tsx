@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom"; // Import Link
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import JoinClassForm from "@/components/JoinClassForm";
-import { BookOpen, Users, FileText } from "lucide-react"; // Import FileText
+import { BookOpen, Users, FileText } from "lucide-react";
 
 interface EnrolledClass {
   id: string;
@@ -19,12 +19,13 @@ interface EnrolledClass {
     profiles: {
       full_name: string;
     };
-    assignments: { // Add assignments to the nested classes object
+    assignments: {
       id: string;
       title: string;
       due_date: string | null;
       total_points: number;
     }[];
+    student_count: number; // Add student_count to the nested classes object
   };
 }
 
@@ -54,13 +55,13 @@ const MyClasses = () => {
       if (profileError || !profile) {
         showError("Failed to fetch user role.");
         console.error("Error fetching profile:", profileError);
-        navigate("/"); // Redirect to home if role cannot be fetched
+        navigate("/");
         return;
       }
 
       if (profile.role !== "student") {
         showError("Access Denied: Only students can view this page. Teachers manage classes via 'Class Management'.");
-        navigate("/"); // Redirect if not a student
+        navigate("/");
         return;
       }
       setUserRole(profile.role);
@@ -98,7 +99,8 @@ const MyClasses = () => {
             title,
             due_date,
             total_points
-          )
+          ),
+          class_enrollments(count)
         )
       `)
       .eq("student_id", user.id)
@@ -108,7 +110,15 @@ const MyClasses = () => {
       showError("Failed to fetch enrolled classes: " + error.message);
       console.error("Error fetching enrolled classes:", error);
     } else {
-      setEnrolledClasses(data as EnrolledClass[]);
+      // Map the data to include student_count within the nested classes object
+      const enrolledClassesWithCounts = data.map(enrollment => ({
+        ...enrollment,
+        classes: {
+          ...enrollment.classes,
+          student_count: enrollment.classes.class_enrollments ? enrollment.classes.class_enrollments.length : 0,
+        }
+      }));
+      setEnrolledClasses(enrolledClassesWithCounts as EnrolledClass[]);
     }
     setLoadingClasses(false);
   }, []);
@@ -162,7 +172,7 @@ const MyClasses = () => {
                   <CardContent className="space-y-2">
                     {enrollment.classes.description && <p className="text-gray-800 dark:text-gray-200">{enrollment.classes.description}</p>}
                     <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                      <span className="flex items-center"><Users className="h-4 w-4 mr-1" /> 0 Students</span> {/* Placeholder for student count */}
+                      <span className="flex items-center"><Users className="h-4 w-4 mr-1" /> {enrollment.classes.student_count} Students</span>
                       <span className="flex items-center"><BookOpen className="h-4 w-4 mr-1" /> {enrollment.classes.assignments.length} Assignments</span>
                     </div>
 
