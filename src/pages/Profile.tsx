@@ -13,6 +13,8 @@ interface Profile {
   role: string;
   education_level?: string | null;
   profile_picture_url?: string | null;
+  current_streak: number; // Add current_streak
+  last_activity_date: string | null; // Add last_activity_date
 }
 
 const Profile = () => {
@@ -29,16 +31,16 @@ const Profile = () => {
     if (user) {
       const { data, error } = await supabase
         .from("profiles")
-        .select("full_name, email, role, education_level, profile_picture_url")
+        .select("full_name, email, role, education_level, profile_picture_url, current_streak, last_activity_date") // Select new fields
         .eq("id", user.id)
         .single();
 
       if (error) {
         showError("Failed to fetch profile: " + error.message);
         console.error("Error fetching profile:", error);
-        setUserProfile(null); // Ensure profile is null on error
+        setUserProfile(null);
       } else {
-        setUserProfile(data);
+        setUserProfile(data as Profile); // Cast to Profile type
       }
     } else {
       navigate("/login");
@@ -75,7 +77,7 @@ const Profile = () => {
     } else {
       showSuccess("Profile updated successfully!");
       setEditMode(false);
-      fetchProfile(); // Re-fetch profile to show updated data
+      fetchProfile();
     }
     setIsSaving(false);
   };
@@ -94,7 +96,7 @@ const Profile = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { error } = await supabase.auth.resetPasswordForEmail(user.email!, {
-        redirectTo: `${window.location.origin}/login?reset=true`, // Redirect to login with a flag
+        redirectTo: `${window.location.origin}/login?reset=true`,
       });
       if (error) {
         showError("Failed to send password reset email: " + error.message);
@@ -109,27 +111,13 @@ const Profile = () => {
   const handleChangeEmail = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      // For simplicity, we'll just show a message. A real implementation would involve a form for new email.
       showError("Email change functionality requires a new email input and verification. Please contact support for now.");
-      // Example of how it would work with a new email:
-      // const newEmail = prompt("Enter your new email address:");
-      // if (newEmail) {
-      //   const { error } = await supabase.auth.updateUser({ email: newEmail });
-      //   if (error) {
-      //     showError("Failed to update email: " + error.message);
-      //   } else {
-      //     showSuccess("Email update initiated. Check your new email for verification.");
-      //   }
-      // }
     } else {
       showError("You must be logged in to change your email.");
     }
   };
 
   const handleDeleteAccount = async () => {
-    // Client-side deletion of the user record in auth.users is generally not allowed
-    // without a service role key or an Edge Function for security reasons.
-    // For this app, we will sign out the user and inform them about the process.
     const { error } = await supabase.auth.signOut();
     if (error) {
       showError("Failed to sign out before account deletion attempt: " + error.message);
@@ -184,9 +172,8 @@ const Profile = () => {
               {userProfile.role === "student" && (
                 <div className="text-center text-gray-700 dark:text-gray-300">
                   <h3 className="font-semibold text-lg mb-2">Student Progress</h3>
-                  <p>Streaks: 0</p>
+                  <p>Current Streak: {userProfile.current_streak} days 🔥</p> {/* Display streak */}
                   <p>Achievements: None yet</p>
-                  {/* Placeholder for Duolingo-like progress */}
                 </div>
               )}
               <Button onClick={() => setEditMode(true)} className="w-full">

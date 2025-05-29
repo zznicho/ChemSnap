@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
-import Home from "./Home"; // Assuming Home is the default authenticated view
+import Home from "./Home";
+import { updateUserStreak } from "@/utils/streakUtils"; // Import the streak utility
 
 const Index = () => {
   const navigate = useNavigate();
@@ -10,18 +11,37 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    const checkSessionAndProfile = async () => {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       setSession(session);
+
+      if (session) {
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("current_streak, last_activity_date")
+          .eq("id", session.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching profile for streak update:", profileError);
+        } else if (profile) {
+          await updateUserStreak(session.user.id, profile.current_streak, profile.last_activity_date);
+        }
+      } else {
+        navigate("/login");
+      }
       setLoading(false);
     };
 
-    checkSession();
+    checkSessionAndProfile();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (!session) {
         navigate("/login");
+      } else {
+        // Re-run streak update if session changes (e.g., after login/signup)
+        checkSessionAndProfile();
       }
     });
 
@@ -37,7 +57,6 @@ const Index = () => {
   }
 
   if (!session) {
-    // If no session, the onAuthStateChange listener will navigate to /login
     return null;
   }
 
