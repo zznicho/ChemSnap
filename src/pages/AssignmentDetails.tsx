@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, FileText, CalendarDays, Award } from "lucide-react";
 import SubmitAssignmentForm from "@/components/SubmitAssignmentForm";
+import GradeSubmissionForm from "@/components/GradeSubmissionForm"; // Import GradeSubmissionForm
 
 interface Assignment {
   id: string;
@@ -30,6 +31,10 @@ interface Assignment {
     submitted_at: string;
     grade: number | null;
     teacher_comments: string | null;
+    student_id: string; // Add student_id to submission
+    profiles: { // Add profiles to submission for student name
+      full_name: string;
+    };
   }[];
 }
 
@@ -90,7 +95,11 @@ const AssignmentDetails = () => {
           file_url,
           submitted_at,
           grade,
-          teacher_comments
+          teacher_comments,
+          student_id,
+          profiles (
+            full_name
+          )
         )
       `)
       .eq("id", assignmentId)
@@ -212,7 +221,7 @@ const AssignmentDetails = () => {
                       </a>
                     </div>
                   )}
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     Submitted: {new Date(studentSubmission.submitted_at).toLocaleString()}
                   </p>
                   {studentSubmission.grade !== null && (
@@ -245,7 +254,9 @@ const AssignmentDetails = () => {
                   {assignment.assignment_submissions.map((submission) => (
                     <li key={submission.id} className="border-b pb-4 last:pb-0 last:border-b-0 border-gray-200 dark:border-gray-700">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="font-medium text-gray-900 dark:text-gray-100">Student ID: {submission.student_id}</p> {/* In a real app, fetch student name */}
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          Student: {submission.profiles?.full_name || "Unknown Student"}
+                        </p>
                         {submission.grade !== null && (
                           <Badge variant="secondary" className="text-lg font-bold">
                             {submission.grade} / {assignment.total_points}
@@ -275,7 +286,13 @@ const AssignmentDetails = () => {
                           <p className="text-gray-800 dark:text-gray-200 text-sm">{submission.teacher_comments}</p>
                         </div>
                       )}
-                      {/* Future: Add a form here for teachers to grade and add comments */}
+                      <GradeSubmissionForm
+                        submissionId={submission.id}
+                        initialGrade={submission.grade}
+                        initialComments={submission.teacher_comments}
+                        totalPoints={assignment.total_points}
+                        onGradeUpdated={fetchAssignmentDetails}
+                      />
                     </li>
                   ))}
                 </ul>
