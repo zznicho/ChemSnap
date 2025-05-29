@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(() => ({
+  root: '.', // Explicitly set root to current directory
   server: {
     host: "::",
     port: 8080,
@@ -14,5 +15,5 @@ export default defineConfig(() => ({
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
   },
-  base: './', // Changed to relative path for Vercel deployment
+  base: './', // Keep relative path for Vercel deployment
 }));
