@@ -33,6 +33,15 @@ const QuizDetails = () => {
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    fetchUser();
+  }, []);
 
   const fetchQuizDetails = useCallback(async () => {
     setLoading(true);
@@ -74,8 +83,11 @@ const QuizDetails = () => {
     setUserAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
 
-  const handleSubmitQuiz = () => {
-    if (!quiz) return;
+  const handleSubmitQuiz = async () => {
+    if (!quiz || !currentUserId) {
+      showError("Cannot submit quiz. User not logged in or quiz data missing.");
+      return;
+    }
 
     let correctCount = 0;
     quiz.questions.forEach((question) => {
@@ -85,7 +97,23 @@ const QuizDetails = () => {
     });
     setScore(correctCount);
     setSubmitted(true);
-    showSuccess(`Quiz completed! You scored ${correctCount} out of ${quiz.questions.length}.`);
+
+    // Save quiz result to database
+    const { error: insertError } = await supabase
+      .from("quiz_results")
+      .insert({
+        quiz_id: quiz.id,
+        user_id: currentUserId,
+        score: correctCount,
+        total_questions: quiz.questions.length,
+      });
+
+    if (insertError) {
+      showError("Failed to save quiz result: " + insertError.message);
+      console.error("Error saving quiz result:", insertError);
+    } else {
+      showSuccess(`Quiz completed! You scored ${correctCount} out of ${quiz.questions.length}. Result saved.`);
+    }
   };
 
   if (loading) {
