@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
-import { useFileUpload } from "@/hooks/useFileUpload"; // Import the file upload hook
+import { useFileUpload } from "@/hooks/useFileUpload";
 
 const formSchema = z.object({
   content_text: z.string().max(500, { message: "Post content cannot exceed 500 characters." }).optional(),
@@ -26,6 +27,7 @@ const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
+  const [activeTab, setActiveTab] = useState("text"); // State to manage active tab
 
   const { uploadFile, loading: uploadingFile, error: uploadError } = useFileUpload("public_files");
 
@@ -104,84 +106,99 @@ const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New Post</h2>
-        <FormField
-          control={form.control}
-          name="content_text"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Text Content (Optional)</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="What's on your mind, ChemSnap!?"
-                  className="min-h-[100px] resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormItem>
-          <FormLabel>Upload Image (Optional)</FormLabel>
-          <FormControl>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setSelectedImageFile(e.target.files ? e.target.files[0] : null)}
-              disabled={uploadingFile || isSubmitting}
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Share Your ChemSnap! Moment</h2>
+
+        <Tabs defaultValue="text" className="w-full" onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="text">Text</TabsTrigger>
+            <TabsTrigger value="image">Image</TabsTrigger>
+            <TabsTrigger value="video">Video</TabsTrigger>
+          </TabsList>
+          <TabsContent value="text" className="mt-4">
+            <FormField
+              control={form.control}
+              name="content_text"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Text Content</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="What's on your mind, ChemSnap!?"
+                      className="min-h-[100px] resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-        <FormField
-          control={form.control}
-          name="content_image_url"
-          render={({ field }) => (
+          </TabsContent>
+          <TabsContent value="image" className="mt-4">
             <FormItem>
-              <FormLabel>Or Image URL (Optional)</FormLabel>
+              <FormLabel>Upload Image</FormLabel>
               <FormControl>
                 <Input
-                  type="url"
-                  placeholder="https://example.com/image.jpg"
-                  {...field}
-                  disabled={!!selectedImageFile || uploadingFile || isSubmitting}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setSelectedImageFile(e.target.files ? e.target.files[0] : null)}
+                  disabled={uploadingFile || isSubmitting}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
-          )}
-        />
-        <FormItem>
-          <FormLabel>Upload Video (Optional)</FormLabel>
-          <FormControl>
-            <Input
-              type="file"
-              accept="video/*"
-              onChange={(e) => setSelectedVideoFile(e.target.files ? e.target.files[0] : null)}
-              disabled={uploadingFile || isSubmitting}
+            <FormField
+              control={form.control}
+              name="content_image_url"
+              render={({ field }) => (
+                <FormItem className="mt-2">
+                  <FormLabel>Or Image URL</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="url"
+                      placeholder="https://example.com/image.jpg"
+                      {...field}
+                      disabled={!!selectedImageFile || uploadingFile || isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-        <FormField
-          control={form.control}
-          name="content_video_url"
-          render={({ field }) => (
+          </TabsContent>
+          <TabsContent value="video" className="mt-4">
             <FormItem>
-              <FormLabel>Or Video URL (Optional)</FormLabel>
+              <FormLabel>Upload Video</FormLabel>
               <FormControl>
                 <Input
-                  type="url"
-                  placeholder="https://example.com/video.mp4"
-                  {...field}
-                  disabled={!!selectedVideoFile || uploadingFile || isSubmitting}
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => setSelectedVideoFile(e.target.files ? e.target.files[0] : null)}
+                  disabled={uploadingFile || isSubmitting}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="content_video_url"
+              render={({ field }) => (
+                <FormItem className="mt-2">
+                  <FormLabel>Or Video URL</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="url"
+                      placeholder="https://example.com/video.mp4"
+                      {...field}
+                      disabled={!!selectedVideoFile || uploadingFile || isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </TabsContent>
+        </Tabs>
+
         {(uploadingFile || isSubmitting) && <p className="text-sm text-gray-500">Uploading files...</p>}
         {uploadError && <p className="text-sm text-red-500">{uploadError}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting || uploadingFile}>
