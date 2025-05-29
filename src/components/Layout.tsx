@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Library, Users as UsersIcon, FlaskConical, BarChart2 } from "lucide-react"; // Import BarChart2 for analytics
+import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Library, Users as UsersIcon, FlaskConical, BarChart2, Award } from "lucide-react"; // Import BarChart2 for analytics and Award
 import { Button } from "@/components/ui/button";
 import { MadeWithDyad } from "./made-with-dyad";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,7 +37,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   }, []);
 
   const navItems = [
-    { path: "/", icon: HomeIcon, label: "Home" },
+    { path: "/home", icon: HomeIcon, label: "Home" },
     { path: "/news", icon: Newspaper, label: "News" },
     { path: "/resources", icon: Book, label: "Resources" },
     { path: "/hsc-resources", icon: Library, label: "HSC Resources" },
