@@ -61,8 +61,9 @@ const ClassManagement = () => {
         return;
       }
 
-      if (profile.role !== "teacher") {
-        showError("Access Denied: Only teachers can manage classes.");
+      // Allow teachers and admins to access this page
+      if (profile.role !== "teacher" && profile.role !== "admin") {
+        showError("Access Denied: Only teachers and administrators can manage classes.");
         navigate("/");
         return;
       }
@@ -81,7 +82,7 @@ const ClassManagement = () => {
       return;
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("classes")
       .select(`
         id,
@@ -100,8 +101,14 @@ const ClassManagement = () => {
         ),
         class_enrollments(count)
       `)
-      .eq("teacher_id", user.id)
       .order("created_at", { ascending: false });
+
+    // Admins can see all classes, teachers only their own
+    if (userRole === "teacher") {
+      query = query.eq("teacher_id", user.id);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       showError("Failed to fetch classes: " + error.message);
@@ -115,10 +122,10 @@ const ClassManagement = () => {
       setClasses(classesWithCounts as Class[]);
     }
     setLoadingClasses(false);
-  }, []);
+  }, [userRole]); // Depend on userRole to refetch if it changes
 
   useEffect(() => {
-    if (userRole === "teacher") {
+    if (userRole) { // Fetch classes once userRole is determined
       fetchClasses();
     }
   }, [userRole, fetchClasses]);
@@ -141,7 +148,7 @@ const ClassManagement = () => {
     );
   }
 
-  if (userRole !== "teacher") {
+  if (userRole !== "teacher" && userRole !== "admin") {
     return null; // Should have been redirected by now
   }
 
@@ -150,9 +157,11 @@ const ClassManagement = () => {
       <div className="w-full max-w-2xl">
         <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">Class Management</h1>
 
-        <div className="mb-8">
-          <CreateClassForm onClassCreated={fetchClasses} />
-        </div>
+        {userRole === "teacher" && ( // Only teachers can create classes
+          <div className="mb-8">
+            <CreateClassForm onClassCreated={fetchClasses} />
+          </div>
+        )}
 
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Your Classes</h2>
         {loadingClasses ? (
@@ -176,9 +185,11 @@ const ClassManagement = () => {
                       <span className="flex items-center"><BookOpen className="h-4 w-4 mr-1" /> {cls.assignments.length} Assignments</span>
                     </div>
                     <div className="mt-4 flex gap-2">
-                      <Button onClick={() => handleOpenCreateAssignmentDialog(cls.id)} className="flex-1" variant="outline">
-                        <PlusCircle className="h-4 w-4 mr-2" /> Create Assignment
-                      </Button>
+                      {userRole === "teacher" && ( // Only teachers can create assignments
+                        <Button onClick={() => handleOpenCreateAssignmentDialog(cls.id)} className="flex-1" variant="outline">
+                          <PlusCircle className="h-4 w-4 mr-2" /> Create Assignment
+                        </Button>
+                      )}
                       <Link to={`/classes/${cls.id}/discussions`} className="flex-1">
                         <Button className="w-full" variant="secondary">
                           <MessageSquare className="h-4 w-4 mr-2" /> Discussions

@@ -60,8 +60,9 @@ const MyClasses = () => {
         return;
       }
 
-      if (profile.role !== "student") {
-        showError("Access Denied: Only students can view this page. Teachers manage classes via 'Class Management'.");
+      // Allow students and admins to view this page
+      if (profile.role !== "student" && profile.role !== "admin") {
+        showError("Access Denied: Only students and administrators can view this page.");
         navigate("/");
         return;
       }
@@ -80,7 +81,7 @@ const MyClasses = () => {
       return;
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("class_enrollments")
       .select(`
         id,
@@ -104,8 +105,14 @@ const MyClasses = () => {
           class_enrollments(count)
         )
       `)
-      .eq("student_id", user.id)
       .order("joined_at", { ascending: false });
+
+    // Admins can see all enrollments, students only their own
+    if (userRole === "student") {
+      query = query.eq("student_id", user.id);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       showError("Failed to fetch enrolled classes: " + error.message);
@@ -121,10 +128,10 @@ const MyClasses = () => {
       setEnrolledClasses(enrolledClassesWithCounts as EnrolledClass[]);
     }
     setLoadingClasses(false);
-  }, []);
+  }, [userRole]); // Depend on userRole to refetch if it changes
 
   useEffect(() => {
-    if (userRole === "student") {
+    if (userRole) { // Fetch results only after role is confirmed
       fetchEnrolledClasses();
     }
   }, [userRole, fetchEnrolledClasses]);
@@ -137,7 +144,7 @@ const MyClasses = () => {
     );
   }
 
-  if (userRole !== "student") {
+  if (userRole !== "student" && userRole !== "admin") {
     return null;
   }
 
@@ -146,9 +153,11 @@ const MyClasses = () => {
       <div className="w-full max-w-2xl">
         <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">My Classes</h1>
 
-        <div className="mb-8">
-          <JoinClassForm onClassJoined={fetchEnrolledClasses} />
-        </div>
+        {userRole === "student" && ( // Only students can join classes
+          <div className="mb-8">
+            <JoinClassForm onClassJoined={fetchEnrolledClasses} />
+          </div>
+        )}
 
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Enrolled Classes</h2>
         {loadingClasses ? (

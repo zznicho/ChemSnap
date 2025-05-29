@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Library, Users as UsersIcon, FlaskConical, BarChart2, Award } from "lucide-react"; // Import BarChart2 for analytics and Award
+import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Library, Users as UsersIcon, FlaskConical, BarChart2, Award, Settings } from "lucide-react"; // Import BarChart2 for analytics and Award
 import { Button } from "@/components/ui/button";
 import { MadeWithDyad } from "./made-with-dyad";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +55,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   if (!loadingRole && userRole === "student") {
     navItems.push({ path: "/my-classes", icon: UsersIcon, label: "My Classes" });
     navItems.push({ path: "/my-quiz-results", icon: Award, label: "My Quiz Results" }); // New link for students
+  }
+  // Add Admin Resources for admins
+  if (!loadingRole && userRole === "admin") {
+    navItems.push({ path: "/admin/resources", icon: Settings, label: "Admin Resources" });
   }
 
   return (
