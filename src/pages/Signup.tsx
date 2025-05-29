@@ -13,6 +13,10 @@ import { useNavigate } from "react-router-dom";
 
 const signupFormSchema = z.object({
   full_name: z.string().min(2, { message: "Full name must be at least 2 characters." }).max(50, { message: "Full name cannot exceed 50 characters." }),
+  username: z.string()
+    .min(3, { message: "Username must be at least 3 characters." })
+    .max(30, { message: "Username cannot exceed 30 characters." })
+    .regex(/^[a-zA-Z0-9_]+$/, { message: "Username can only contain letters, numbers, and underscores." }),
   email: z.string().email({ message: "Please enter a valid email address." }).optional().or(z.literal("")),
   password: z
     .string()
@@ -43,6 +47,7 @@ const Signup = () => {
     resolver: zodResolver(signupFormSchema),
     defaultValues: {
       full_name: "",
+      username: "",
       email: "",
       password: "",
       confirm_password: "",
@@ -69,7 +74,7 @@ const Signup = () => {
   const onSubmit = async (values: z.infer<typeof signupFormSchema>) => {
     setIsSubmitting(true);
     try {
-      const { email, password, full_name, role, education_level } = values;
+      const { email, password, full_name, role, education_level, username } = values;
 
       const { data, error } = await supabase.auth.signUp({
         email: email || undefined, // Supabase treats empty string as invalid email
@@ -79,6 +84,7 @@ const Signup = () => {
             full_name,
             role,
             education_level: role === "student" ? education_level : null,
+            username, // Pass the username to raw_user_meta_data
           },
         },
       });
@@ -116,6 +122,19 @@ const Signup = () => {
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Your full name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Choose a unique username" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
