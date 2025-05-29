@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { useFileUpload } from "@/hooks/useFileUpload"; // Import the file upload hook
+import { updateUserStreak } from "@/utils/streakUtils"; // Import streak utility
 
 const formSchema = z.object({
   submission_text: z.string().max(1000, { message: "Submission text cannot exceed 1000 characters." }).optional(),
@@ -112,6 +113,19 @@ const SubmitAssignmentForm = ({ assignmentId, onSubmissionSuccess, initialSubmis
           showSuccess("Submission updated successfully!");
           setSelectedFile(null);
           onSubmissionSuccess();
+
+          // Update user streak after successful assignment submission
+          const { data: profile, error: profileError } = await supabase
+            .from("profiles")
+            .select("current_streak, last_activity_date")
+            .eq("id", currentUserId)
+            .single();
+
+          if (profileError) {
+            console.error("Error fetching profile for streak update:", profileError);
+          } else if (profile) {
+            await updateUserStreak(currentUserId, profile.current_streak, profile.last_activity_date);
+          }
         }
       } else {
         // Insert new submission
@@ -132,6 +146,19 @@ const SubmitAssignmentForm = ({ assignmentId, onSubmissionSuccess, initialSubmis
           form.reset();
           setSelectedFile(null);
           onSubmissionSuccess();
+
+          // Update user streak after successful assignment submission
+          const { data: profile, error: profileError } = await supabase
+            .from("profiles")
+            .select("current_streak, last_activity_date")
+            .eq("id", currentUserId)
+            .single();
+
+          if (profileError) {
+            console.error("Error fetching profile for streak update:", profileError);
+          } else if (profile) {
+            await updateUserStreak(currentUserId, profile.current_streak, profile.last_activity_date);
+          }
         }
       }
     } catch (error: any) {
