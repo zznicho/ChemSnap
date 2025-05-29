@@ -6,6 +6,7 @@ import CreatePostForm from "@/components/CreatePostForm";
 import CommentSection from "@/components/CommentSection";
 import { MessageSquare, Heart, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom"; // Import Link
 
 interface Post {
   id: string;
@@ -18,7 +19,7 @@ interface Post {
     full_name: string;
     profile_picture_url: string | null;
   };
-  likes: { id: string }[];
+  likes: { id: string; user_id: string }[]; // Updated to include user_id
   comments: { id: string }[];
 }
 
@@ -50,7 +51,7 @@ const SocialFeed = () => {
           full_name,
           profile_picture_url
         ),
-        likes (id),
+        likes (id, user_id),
         comments (id)
       `)
       .order("created_at", { ascending: false });
@@ -155,15 +156,17 @@ const SocialFeed = () => {
               posts.map((post) => (
                 <Card key={post.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
                   <CardHeader className="flex flex-row items-center space-x-3">
-                    <img
-                      src={post.profiles?.profile_picture_url || `https://api.dicebear.com/7.x/initials/svg?seed=${post.profiles?.full_name || 'User'}`}
-                      alt={post.profiles?.full_name || "User"}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <CardTitle className="text-lg text-gray-900 dark:text-gray-100">{post.profiles?.full_name || "Unknown User"}</CardTitle>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(post.created_at).toLocaleString()}</p>
-                    </div>
+                    <Link to={`/profile/${post.author_id}`} className="flex items-center space-x-3 group">
+                      <img
+                        src={post.profiles?.profile_picture_url || `https://api.dicebear.com/7.x/initials/svg?seed=${post.profiles?.full_name || 'User'}`}
+                        alt={post.profiles?.full_name || "User"}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <CardTitle className="text-lg text-gray-900 dark:text-gray-100 group-hover:underline">{post.profiles?.full_name || "Unknown User"}</CardTitle>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(post.created_at).toLocaleString()}</p>
+                      </div>
+                    </Link>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {post.content_text && <p className="text-gray-800 dark:text-gray-200">{post.content_text}</p>}

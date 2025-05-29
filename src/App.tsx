@@ -54,6 +54,7 @@ const App = () => (
               <Route path="/quizzes/:quizId" element={<QuizDetails />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/:userId" element={<Profile />} /> {/* New dynamic profile route */}
               <Route path="/classes" element={<ClassManagement />} />
               <Route path="/hsc-resources" element={<HSCResources />} />
               <Route path="/my-classes" element={<MyClasses />} />
