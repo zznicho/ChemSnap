@@ -24,7 +24,7 @@ const Login = () => {
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">Log In to ChemSnap!</h2>
         <Auth
           supabaseClient={supabase}
-          providers={[]} {/* Changed from ["anonymous"] to [] */}
+          providers={[]}
           appearance={{
             theme: ThemeSupa,
             variables: {
