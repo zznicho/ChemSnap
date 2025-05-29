@@ -3,8 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import CreateClassForm from "@/components/CreateClassForm";
-import { Users, BookOpen } from "lucide-react";
+import CreateAssignmentForm from "@/components/CreateAssignmentForm"; // Import CreateAssignmentForm
+import { Users, BookOpen, PlusCircle, FileText } from "lucide-react"; // Import FileText icon
 
 interface Class {
   id: string;
@@ -14,6 +17,15 @@ interface Class {
   description: string | null;
   class_code: string;
   created_at: string;
+  assignments: Assignment[]; // Add assignments to Class interface
+}
+
+interface Assignment {
+  id: string;
+  title: string;
+  due_date: string | null;
+  total_points: number;
+  file_url: string | null;
 }
 
 const ClassManagement = () => {
@@ -22,6 +34,8 @@ const ClassManagement = () => {
   const [loadingRole, setLoadingRole] = useState(true);
   const [classes, setClasses] = useState<Class[]>([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
+  const [isCreateAssignmentDialogOpen, setIsCreateAssignmentDialogOpen] = useState(false);
+  const [selectedClassIdForAssignment, setSelectedClassIdForAssignment] = useState<string | null>(null);
 
   useEffect(() => {
     const checkUserRole = async () => {
@@ -68,7 +82,22 @@ const ClassManagement = () => {
 
     const { data, error } = await supabase
       .from("classes")
-      .select("*")
+      .select(`
+        id,
+        name,
+        subject,
+        year_level,
+        description,
+        class_code,
+        created_at,
+        assignments (
+          id,
+          title,
+          due_date,
+          total_points,
+          file_url
+        )
+      `)
       .eq("teacher_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -86,6 +115,16 @@ const ClassManagement = () => {
       fetchClasses();
     }
   }, [userRole, fetchClasses]);
+
+  const handleOpenCreateAssignmentDialog = (classId: string) => {
+    setSelectedClassIdForAssignment(classId);
+    setIsCreateAssignmentDialogOpen(true);
+  };
+
+  const handleAssignmentCreated = () => {
+    setIsCreateAssignmentDialogOpen(false);
+    fetchClasses(); // Refresh classes to show new assignment
+  };
 
   if (loadingRole) {
     return (
@@ -127,9 +166,34 @@ const ClassManagement = () => {
                     {cls.description && <p className="text-gray-800 dark:text-gray-200">{cls.description}</p>}
                     <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
                       <span className="flex items-center"><Users className="h-4 w-4 mr-1" /> 0 Students</span> {/* Placeholder for student count */}
-                      <span className="flex items-center"><BookOpen className="h-4 w-4 mr-1" /> 0 Assignments</span> {/* Placeholder for assignment count */}
+                      <span className="flex items-center"><BookOpen className="h-4 w-4 mr-1" /> {cls.assignments.length} Assignments</span>
                     </div>
-                    {/* Future: Buttons for managing students, assignments, etc. */}
+                    <div className="mt-4">
+                      <Button onClick={() => handleOpenCreateAssignmentDialog(cls.id)} className="w-full" variant="outline">
+                        <PlusCircle className="h-4 w-4 mr-2" /> Create New Assignment
+                      </Button>
+                    </div>
+
+                    {cls.assignments.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Assignments</h3>
+                        <ul className="space-y-2">
+                          {cls.assignments.map(assignment => (
+                            <li key={assignment.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+                              <div className="flex-grow">
+                                <p className="font-medium text-gray-900 dark:text-gray-100">{assignment.title}</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                  Due: {assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : "No due date"} | {assignment.total_points} points
+                                </p>
+                              </div>
+                              <Button variant="ghost" size="sm">
+                                <FileText className="h-4 w-4 mr-1" /> View
+                              </Button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))
@@ -137,6 +201,20 @@ const ClassManagement = () => {
           </div>
         )}
       </div>
+
+      {selectedClassIdForAssignment && (
+        <Dialog open={isCreateAssignmentDialogOpen} onOpenChange={setIsCreateAssignmentDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Create Assignment</DialogTitle>
+            </DialogHeader>
+            <CreateAssignmentForm
+              classId={selectedClassIdForAssignment}
+              onAssignmentCreated={handleAssignmentCreated}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
