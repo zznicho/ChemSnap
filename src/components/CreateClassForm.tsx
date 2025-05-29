@@ -50,6 +50,7 @@ const CreateClassForm = ({ onClassCreated }: CreateClassFormProps) => {
       }
 
       const classCode = generateClassCode();
+      console.log("Generated Class Code:", classCode); // Log the generated code
 
       const { error } = await supabase
         .from("classes")

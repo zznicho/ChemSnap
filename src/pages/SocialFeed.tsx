@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { showError } from "@/utils/toast";
+import { showError, showSuccess } from "@/utils/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CreatePostForm from "@/components/CreatePostForm";
 import CommentSection from "@/components/CommentSection";
@@ -121,6 +121,17 @@ const SocialFeed = () => {
     }
   };
 
+  const handleShare = async (postId: string) => {
+    const postUrl = `${window.location.origin}/feed/${postId}`; // Construct the URL for the specific post
+    try {
+      await navigator.clipboard.writeText(postUrl);
+      showSuccess("Post link copied to clipboard!");
+    } catch (err) {
+      showError("Failed to copy link. Please try again.");
+      console.error("Error copying to clipboard:", err);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
       <div className="w-full max-w-2xl">
@@ -170,7 +181,7 @@ const SocialFeed = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleLike(post.id)}
-                          className={`flex items-center ${post.likes.some(like => like.id === currentUserId) ? 'text-red-500' : ''}`}
+                          className={`flex items-center ${post.likes.some(like => like.user_id === currentUserId) ? 'text-red-500' : ''}`}
                         >
                           <Heart className="h-4 w-4 mr-1" /> {post.likes.length} Likes
                         </Button>
@@ -178,7 +189,7 @@ const SocialFeed = () => {
                           <MessageSquare className="h-4 w-4 mr-1" /> {post.comments.length} Comments
                         </Button>
                       </div>
-                      <Button variant="ghost" size="sm" className="flex items-center">
+                      <Button variant="ghost" size="sm" className="flex items-center" onClick={() => handleShare(post.id)}>
                         <Share2 className="h-4 w-4 mr-1" /> Share
                       </Button>
                     </div>
