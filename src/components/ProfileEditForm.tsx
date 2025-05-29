@@ -88,7 +88,8 @@ const ProfileEditForm = ({ initialProfile, onSave, onCancel, isSaving }: Profile
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="high_school">High School</SelectItem>
+                  <SelectItem value="year_11_prelim">Year 11 Prelim</SelectItem>
+                  <SelectItem value="year_12_hsc">Year 12 HSC</SelectItem>
                   <SelectItem value="university">University</SelectItem>
                   <SelectItem value="post_graduate">Post Graduate</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
