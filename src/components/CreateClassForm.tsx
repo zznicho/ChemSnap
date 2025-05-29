@@ -40,8 +40,11 @@ const CreateClassForm = ({ onClassCreated }: CreateClassFormProps) => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
+    console.log("Attempting to create class with values:", values);
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log("Supabase user data:", user);
+      console.log("Supabase user error:", userError);
 
       if (userError || !user) {
         showError("You must be logged in to create a class.");
@@ -50,7 +53,7 @@ const CreateClassForm = ({ onClassCreated }: CreateClassFormProps) => {
       }
 
       const classCode = generateClassCode();
-      console.log("Generated Class Code:", classCode); // Log the generated code
+      console.log("Generated Class Code:", classCode);
 
       const { error } = await supabase
         .from("classes")
@@ -76,6 +79,7 @@ const CreateClassForm = ({ onClassCreated }: CreateClassFormProps) => {
       console.error("Unexpected error:", error);
     } finally {
       setIsSubmitting(false);
+      console.log("Class creation attempt finished.");
     }
   };
 
