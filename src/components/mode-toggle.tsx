@@ -37,6 +37,24 @@ export function ModeToggle() {
         <DropdownMenuItem onClick={() => setTheme("noble-gas")}>
           Noble Gas
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("halogen")}>
+          Halogen
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("transition-metal")}>
+          Transition Metal
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("lanthanide")}>
+          Lanthanide
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("actinide")}>
+          Actinide
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("covalent")}>
+          Covalent
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("ionic")}>
+          Ionic
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
