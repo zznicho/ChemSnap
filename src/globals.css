@@ -61,14 +61,14 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 217.2 91.2% 59.8%; /* Adjusted for better contrast */
+    --primary-foreground: 210 40% 98%; /* Adjusted for better contrast */
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 215 20.2% 80%; /* Adjusted for better contrast */
 
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
@@ -107,7 +107,7 @@
     --secondary-foreground: 20 80% 20%;
 
     --muted: 40 60% 95%;
-    --muted-foreground: 20 40% 50%;
+    --muted-foreground: 20 80% 30%; /* Adjusted for better contrast */
 
     --accent: 40 60% 90%;
     --accent-foreground: 20 80% 20%;
@@ -147,7 +147,7 @@
     --secondary-foreground: 210 20% 80%;
 
     --muted: 230 15% 20%;
-    --muted-foreground: 210 10% 50%;
+    --muted-foreground: 210 20% 70%; /* Adjusted for better contrast */
 
     --accent: 230 15% 25%;
     --accent-foreground: 210 20% 80%;
@@ -187,7 +187,7 @@
     --secondary-foreground: 180 80% 20%;
 
     --muted: 180 30% 90%;
-    --muted-foreground: 180 40% 50%;
+    --muted-foreground: 180 80% 30%; /* Adjusted for better contrast */
 
     --accent: 180 30% 85%;
     --accent-foreground: 180 80% 20%;
@@ -227,7 +227,7 @@
     --secondary-foreground: 40 10% 20%;
 
     --muted: 40 15% 85%;
-    --muted-foreground: 40 10% 50%;
+    --muted-foreground: 40 10% 30%; /* Adjusted for better contrast */
 
     --accent: 40 15% 80%;
     --accent-foreground: 40 10% 20%;
@@ -267,7 +267,7 @@
     --secondary-foreground: 260 10% 85%;
 
     --muted: 260 15% 25%;
-    --muted-foreground: 260 10% 60%;
+    --muted-foreground: 260 10% 75%; /* Adjusted for better contrast */
 
     --accent: 260 15% 30%;
     --accent-foreground: 260 10% 85%;
@@ -307,7 +307,7 @@
     --secondary-foreground: 0 80% 90%;
 
     --muted: 0 50% 10%;
-    --muted-foreground: 0 40% 50%;
+    --muted-foreground: 0 80% 70%; /* Adjusted for better contrast */
 
     --accent: 0 50% 15%;
     --accent-foreground: 0 80% 90%;
@@ -347,7 +347,7 @@
     --secondary-foreground: 120 20% 20%;
 
     --muted: 120 15% 90%;
-    --muted-foreground: 120 20% 50%;
+    --muted-foreground: 120 20% 30%; /* Adjusted for better contrast */
 
     --accent: 120 15% 85%;
     --accent-foreground: 120 20% 20%;
@@ -387,7 +387,7 @@
     --secondary-foreground: 240 50% 10%;
 
     --muted: 240 30% 85%;
-    --muted-foreground: 240 40% 50%;
+    --muted-foreground: 240 50% 30%; /* Adjusted for better contrast */
 
     --accent: 240 30% 80%;
     --accent-foreground: 240 50% 10%;
