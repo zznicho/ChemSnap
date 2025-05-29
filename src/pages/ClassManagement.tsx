@@ -1,13 +1,24 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom"; // Import Link
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { showError } from "@/utils/toast";
+import { showError, showSuccess } from "@/utils/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import CreateClassForm from "@/components/CreateClassForm";
 import CreateAssignmentForm from "@/components/CreateAssignmentForm";
-import { Users, BookOpen, PlusCircle, FileText, MessageSquare } from "lucide-react"; // Import MessageSquare
+import { Users, BookOpen, PlusCircle, FileText, MessageSquare, Trash2 } from "lucide-react";
 
 interface Class {
   id: string;
@@ -18,7 +29,7 @@ interface Class {
   class_code: string;
   created_at: string;
   assignments: Assignment[];
-  student_count: number; // Add student_count to Class interface
+  student_count: number;
 }
 
 interface Assignment {
@@ -61,7 +72,6 @@ const ClassManagement = () => {
         return;
       }
 
-      // Allow teachers and admins to access this page
       if (profile.role !== "teacher" && profile.role !== "admin") {
         showError("Access Denied: Only teachers and administrators can manage classes.");
         navigate("/");
@@ -103,7 +113,6 @@ const ClassManagement = () => {
       `)
       .order("created_at", { ascending: false });
 
-    // Admins can see all classes, teachers only their own
     if (userRole === "teacher") {
       query = query.eq("teacher_id", user.id);
     }
@@ -114,7 +123,6 @@ const ClassManagement = () => {
       showError("Failed to fetch classes: " + error.message);
       console.error("Error fetching classes:", error);
     } else {
-      // Map the data to include student_count
       const classesWithCounts = data.map(cls => ({
         ...cls,
         student_count: cls.class_enrollments ? cls.class_enrollments.length : 0,
@@ -122,10 +130,10 @@ const ClassManagement = () => {
       setClasses(classesWithCounts as Class[]);
     }
     setLoadingClasses(false);
-  }, [userRole]); // Depend on userRole to refetch if it changes
+  }, [userRole]);
 
   useEffect(() => {
-    if (userRole) { // Fetch classes once userRole is determined
+    if (userRole) {
       fetchClasses();
     }
   }, [userRole, fetchClasses]);
@@ -137,7 +145,27 @@ const ClassManagement = () => {
 
   const handleAssignmentCreated = () => {
     setIsCreateAssignmentDialogOpen(false);
-    fetchClasses(); // Refresh classes to show new assignment
+    fetchClasses();
+  };
+
+  const handleDeleteClass = async (classId: string) => {
+    try {
+      const { error } = await supabase
+        .from("classes")
+        .delete()
+        .eq("id", classId);
+
+      if (error) {
+        showError("Failed to delete class: " + error.message);
+        console.error("Error deleting class:", error);
+      } else {
+        showSuccess("Class deleted successfully!");
+        fetchClasses(); // Refresh the list of classes
+      }
+    } catch (error: any) {
+      showError("An unexpected error occurred: " + error.message);
+      console.error("Unexpected error:", error);
+    }
   };
 
   if (loadingRole) {
@@ -149,7 +177,7 @@ const ClassManagement = () => {
   }
 
   if (userRole !== "teacher" && userRole !== "admin") {
-    return null; // Should have been redirected by now
+    return null;
   }
 
   return (
@@ -157,7 +185,7 @@ const ClassManagement = () => {
       <div className="w-full max-w-2xl">
         <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">Class Management</h1>
 
-        {userRole === "teacher" && ( // Only teachers can create classes
+        {userRole === "teacher" && (
           <div className="mb-8">
             <CreateClassForm onClassCreated={fetchClasses} />
           </div>
@@ -185,7 +213,7 @@ const ClassManagement = () => {
                       <span className="flex items-center"><BookOpen className="h-4 w-4 mr-1" /> {cls.assignments.length} Assignments</span>
                     </div>
                     <div className="mt-4 flex gap-2">
-                      {userRole === "teacher" && ( // Only teachers can create assignments
+                      {(userRole === "teacher" || userRole === "admin") && (
                         <Button onClick={() => handleOpenCreateAssignmentDialog(cls.id)} className="flex-1" variant="outline">
                           <PlusCircle className="h-4 w-4 mr-2" /> Create Assignment
                         </Button>
@@ -195,6 +223,30 @@ const ClassManagement = () => {
                           <MessageSquare className="h-4 w-4 mr-2" /> Discussions
                         </Button>
                       </Link>
+                      {(userRole === "teacher" || userRole === "admin") && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm" className="flex-1">
+                              <Trash2 className="h-4 w-4 mr-2" /> Delete Class
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the class,
+                                all its assignments, and discussion messages. Student enrollments will also be removed.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteClass(cls.id)} className="bg-red-600 hover:bg-red-700">
+                                Yes, delete class
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
 
                     {cls.assignments.length > 0 && (
