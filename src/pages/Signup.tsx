@@ -17,10 +17,10 @@ const signupFormSchema = z.object({
     .min(3, { message: "Username must be at least 3 characters." })
     .max(30, { message: "Username cannot exceed 30 characters." })
     .regex(/^[a-zA-Z0-9_]+$/, { message: "Username can only contain letters, numbers, and underscores." }),
-  email: z.string().email({ message: "Please enter a valid email address." }).optional().or(z.literal("")),
+  email: z.string().email({ message: "Please enter a valid email address." }), // Email is now required
   password: z
     .string()
-    .min(7, { message: "Password must be at least 7 characters." })
+    .min(6, { message: "Password must be at least 6 characters." }) // Changed from 7 to 6
     .regex(/[A-Z]|\W/, { message: "Password must contain at least one capital letter or special character." }),
   confirm_password: z.string(),
   role: z.enum(["student", "teacher", "personal"], { message: "Please select a role." }),
@@ -58,7 +58,7 @@ const Signup = () => {
 
   const selectedRole = form.watch("role");
 
-  const hasMinLength = passwordInput.length >= 7;
+  const hasMinLength = passwordInput.length >= 6; // Changed from 7 to 6
   const hasCapitalOrSpecial = /[A-Z]|\W/.test(passwordInput);
 
   useEffect(() => {
@@ -77,7 +77,7 @@ const Signup = () => {
       const { email, password, full_name, role, education_level, username } = values;
 
       const { data, error } = await supabase.auth.signUp({
-        email: email || undefined, // Supabase treats empty string as invalid email
+        email: email, // Email is now required
         password,
         options: {
           data: {
@@ -145,7 +145,7 @@ const Signup = () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email (Optional)</FormLabel>
+                  <FormLabel>Email</FormLabel> {/* Removed (Optional) */}
                   <FormControl>
                     <Input type="email" placeholder="Your email address" {...field} />
                   </FormControl>
@@ -173,7 +173,7 @@ const Signup = () => {
                   <div className="text-sm mt-2 space-y-1">
                     <p className={`flex items-center ${hasMinLength ? "text-green-500" : "text-gray-500"}`}>
                       <Check className={`h-4 w-4 mr-2 ${hasMinLength ? "text-green-500" : "text-gray-400"}`} />
-                      At least 7 characters
+                      At least 6 characters {/* Updated message */}
                     </p>
                     <p className={`flex items-center ${hasCapitalOrSpecial ? "text-green-500" : "text-gray-500"}`}>
                       <Check className={`h-4 w-4 mr-2 ${hasCapitalOrSpecial ? "text-green-500" : "text-gray-400"}`} />
