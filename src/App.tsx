@@ -15,7 +15,8 @@ import CalendarPage from "./pages/CalendarPage";
 import Profile from "./pages/Profile";
 import ClassManagement from "./pages/ClassManagement";
 import HSCResources from "./pages/HSCResources";
-import MyClasses from "./pages/MyClasses"; // Import MyClasses
+import MyClasses from "./pages/MyClasses";
+import AssignmentDetails from "./pages/AssignmentDetails"; // Import AssignmentDetails
 import Layout from "./components/Layout";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -40,7 +41,8 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/classes" element={<ClassManagement />} />
               <Route path="/hsc-resources" element={<HSCResources />} />
-              <Route path="/my-classes" element={<MyClasses />} /> {/* Add MyClasses route */}
+              <Route path="/my-classes" element={<MyClasses />} />
+              <Route path="/assignments/:assignmentId" element={<AssignmentDetails />} /> {/* Add AssignmentDetails route */}
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

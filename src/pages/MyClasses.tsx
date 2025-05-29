@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Import Link
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import JoinClassForm from "@/components/JoinClassForm";
-import { BookOpen, Users } from "lucide-react";
+import { BookOpen, Users, FileText } from "lucide-react"; // Import FileText
 
 interface EnrolledClass {
   id: string;
@@ -19,6 +19,12 @@ interface EnrolledClass {
     profiles: {
       full_name: string;
     };
+    assignments: { // Add assignments to the nested classes object
+      id: string;
+      title: string;
+      due_date: string | null;
+      total_points: number;
+    }[];
   };
 }
 
@@ -86,6 +92,12 @@ const MyClasses = () => {
           class_code,
           profiles (
             full_name
+          ),
+          assignments (
+            id,
+            title,
+            due_date,
+            total_points
           )
         )
       `)
@@ -150,9 +162,32 @@ const MyClasses = () => {
                   <CardContent className="space-y-2">
                     {enrollment.classes.description && <p className="text-gray-800 dark:text-gray-200">{enrollment.classes.description}</p>}
                     <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                      <span className="flex items-center"><BookOpen className="h-4 w-4 mr-1" /> View Assignments</span> {/* Placeholder for assignments */}
+                      <span className="flex items-center"><Users className="h-4 w-4 mr-1" /> 0 Students</span> {/* Placeholder for student count */}
+                      <span className="flex items-center"><BookOpen className="h-4 w-4 mr-1" /> {enrollment.classes.assignments.length} Assignments</span>
                     </div>
-                    {/* Future: Buttons for viewing class details, assignments, discussions */}
+
+                    {enrollment.classes.assignments.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Assignments</h3>
+                        <ul className="space-y-2">
+                          {enrollment.classes.assignments.map(assignment => (
+                            <li key={assignment.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+                              <div className="flex-grow">
+                                <p className="font-medium text-gray-900 dark:text-gray-100">{assignment.title}</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                  Due: {assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : "No due date"} | {assignment.total_points} points
+                                </p>
+                              </div>
+                              <Link to={`/assignments/${assignment.id}`}>
+                                <Button variant="ghost" size="sm">
+                                  <FileText className="h-4 w-4 mr-1" /> View
+                                </Button>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))
