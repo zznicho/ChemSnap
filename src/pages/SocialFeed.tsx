@@ -2,414 +2,196 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Award, BookOpen, Users, FlaskConical, FileText } from "lucide-react";
-import { Link } from "react-router-dom";
+import CreatePostForm from "@/components/CreatePostForm";
+import CommentSection from "@/components/CommentSection";
+import { MessageSquare, Heart, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface UserProfile {
-  full_name: string;
-  profile_picture_url: string | null;
-  role: string;
-  current_streak: number;
-  last_activity_date: string | null;
-}
-
-interface QuizResult {
+interface Post {
   id: string;
-  score: number;
-  total_questions: number;
-  submitted_at: string;
-  quizzes: {
-    title: string;
-    subject: string;
+  content_text: string | null;
+  content_image_url: string | null;
+  content_video_url: string | null;
+  created_at: string;
+  author_id: string;
+  profiles: {
+    full_name: string;
+    profile_picture_url: string | null;
   };
+  likes: { id: string }[];
+  comments: { id: string }[];
 }
 
-interface Assignment {
-  id: string;
-  title: string;
-  due_date: string | null;
-  total_points: number;
-  classes: {
-    name: string;
-  };
-}
-
-interface Class {
-  id: string;
-  name: string;
-  subject: string;
-  class_code: string;
-}
-
-const Home = () => {
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [recentQuizResults, setRecentQuizResults] = useState<QuizResult[]>([]);
-  const [upcomingAssignments, setUpcomingAssignments] = useState<Assignment[]>([]);
-  const [teacherQuizzes, setTeacherQuizzes] = useState<Quiz[]>([]);
-  const [teacherAssignments, setTeacherAssignments] = useState<Assignment[]>([]);
-  const [enrolledClasses, setEnrolledClasses] = useState<Class[]>([]);
+const SocialFeed = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  const fetchDashboardData = useCallback(async () => {
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    fetchUser();
+  }, []);
+
+  const fetchPosts = useCallback(async () => {
     setLoading(true);
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data, error } = await supabase
+      .from("posts")
+      .select(`
+        id,
+        content_text,
+        content_image_url,
+        content_video_url,
+        created_at,
+        author_id,
+        profiles (
+          full_name,
+          profile_picture_url
+        ),
+        likes (id),
+        comments (id)
+      `)
+      .order("created_at", { ascending: false });
 
-    if (userError || !user) {
-      showError("User not logged in.");
-      setLoading(false);
-      return;
-    }
-
-    // Fetch user profile
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("full_name, profile_picture_url, role, current_streak, last_activity_date")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError || !profile) {
-      showError("Failed to fetch profile: " + (profileError?.message || "Unknown error"));
-      console.error("Error fetching profile:", profileError);
-      setLoading(false);
-      return;
-    }
-    setUserProfile(profile as UserProfile);
-
-    if (profile.role === "student") {
-      // Fetch recent quiz results for student
-      const { data: quizResultsData, error: quizResultsError } = await supabase
-        .from("quiz_results")
-        .select(`
-          id,
-          score,
-          total_questions,
-          submitted_at,
-          quizzes (title, subject)
-        `)
-        .eq("user_id", user.id)
-        .order("submitted_at", { ascending: false })
-        .limit(3);
-
-      if (quizResultsError) {
-        console.error("Error fetching quiz results:", quizResultsError);
-      } else {
-        setRecentQuizResults(quizResultsData as QuizResult[]);
-      }
-
-      // Fetch upcoming assignments for student's enrolled classes
-      const { data: enrollments, error: enrollmentsError } = await supabase
-        .from("class_enrollments")
-        .select("class_id")
-        .eq("student_id", user.id);
-
-      if (enrollmentsError) {
-        console.error("Error fetching enrollments:", enrollmentsError);
-      } else if (enrollments && enrollments.length > 0) {
-        const classIds = enrollments.map(e => e.class_id);
-        const { data: assignmentsData, error: assignmentsError } = await supabase
-          .from("assignments")
-          .select(`
-            id,
-            title,
-            due_date,
-            total_points,
-            classes (name)
-          `)
-          .in("class_id", classIds)
-          .gte("due_date", new Date().toISOString()) // Only future assignments
-          .order("due_date", { ascending: true })
-          .limit(5);
-
-        if (assignmentsError) {
-          console.error("Error fetching upcoming assignments:", assignmentsError);
-        } else {
-          setUpcomingAssignments(assignmentsData as Assignment[]);
-        }
-
-        // Fetch enrolled classes for student
-        const { data: enrolledClassesData, error: enrolledClassesError } = await supabase
-          .from("class_enrollments")
-          .select(`
-            classes (
-              id,
-              name,
-              subject,
-              class_code
-            )
-          `)
-          .eq("student_id", user.id)
-          .limit(3);
-
-        if (enrolledClassesError) {
-          console.error("Error fetching enrolled classes:", enrolledClassesError);
-        } else {
-          setEnrolledClasses(enrolledClassesData.map(e => e.classes) as Class[]);
-        }
-      }
-    } else if (profile.role === "teacher") {
-      // Fetch recent quizzes created by teacher
-      const { data: quizzesData, error: quizzesError } = await supabase
-        .from("quizzes")
-        .select("id, title, subject, difficulty")
-        .eq("teacher_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(3);
-
-      if (quizzesError) {
-        console.error("Error fetching teacher quizzes:", quizzesError);
-      } else {
-        setTeacherQuizzes(quizzesData as Quiz[]);
-      }
-
-      // Fetch upcoming assignments created by teacher
-      const { data: assignmentsData, error: assignmentsError } = await supabase
-        .from("assignments")
-        .select(`
-          id,
-          title,
-          due_date,
-          total_points,
-          classes (name)
-        `)
-        .eq("teacher_id", user.id)
-        .gte("due_date", new Date().toISOString()) // Only future assignments
-        .order("due_date", { ascending: true })
-        .limit(5);
-
-      if (assignmentsError) {
-        console.error("Error fetching teacher assignments:", assignmentsError);
-      } else {
-        setTeacherAssignments(assignmentsData as Assignment[]);
-      }
+    if (error) {
+      showError("Failed to fetch posts: " + error.message);
+      console.error("Error fetching posts:", error);
+    } else {
+      setPosts(data as Post[]);
     }
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+    fetchPosts();
+  }, [fetchPosts]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-        <p className="text-gray-600 dark:text-gray-400">Loading dashboard...</p>
-      </div>
-    );
-  }
+  const handleLike = async (postId: string) => {
+    if (!currentUserId) {
+      showError("You must be logged in to like a post.");
+      return;
+    }
 
-  if (!userProfile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-        <p className="text-gray-600 dark:text-gray-400">Profile not found. Please log in.</p>
-      </div>
-    );
-  }
+    // Check if already liked
+    const { data: existingLike, error: checkError } = await supabase
+      .from("likes")
+      .select("id")
+      .eq("post_id", postId)
+      .eq("user_id", currentUserId)
+      .single();
+
+    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 means no rows found
+      showError("Failed to check like status: " + checkError.message);
+      console.error("Error checking like:", checkError);
+      return;
+    }
+
+    if (existingLike) {
+      // Unlike
+      const { error } = await supabase
+        .from("likes")
+        .delete()
+        .eq("id", existingLike.id);
+
+      if (error) {
+        showError("Failed to unlike post: " + error.message);
+        console.error("Error unliking:", error);
+      } else {
+        showSuccess("Post unliked!");
+        fetchPosts();
+      }
+    } else {
+      // Like
+      const { error } = await supabase
+        .from("likes")
+        .insert({
+          post_id: postId,
+          user_id: currentUserId,
+        });
+
+      if (error) {
+        showError("Failed to like post: " + error.message);
+        console.error("Error liking:", error);
+      } else {
+        showSuccess("Post liked!");
+        fetchPosts();
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
-      <div className="w-full max-w-3xl">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">
-          Welcome, {userProfile.full_name.split(' ')[0]}!
-        </h1>
+      <div className="w-full max-w-2xl">
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">ChemSnap! Social Feed</h1>
+        <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
+          Share your chemistry journey, ask questions, and connect with other students and teachers!
+        </p>
 
-        <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg mb-6">
-          <CardHeader className="flex flex-row items-center space-x-4">
-            <img
-              src={userProfile.profile_picture_url || `https://api.dicebear.com/7.x/initials/svg?seed=${userProfile.full_name}`}
-              alt={userProfile.full_name}
-              className="w-16 h-16 rounded-full object-cover"
-            />
-            <div>
-              <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{userProfile.full_name}</CardTitle>
-              <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">{userProfile.role}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Current Streak: {userProfile.current_streak} days 🔥</p>
-            </div>
-          </CardHeader>
-        </Card>
+        <div className="mb-8">
+          <CreatePostForm onPostCreated={fetchPosts} />
+        </div>
 
-        {userProfile.role === "student" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                  <Award className="h-5 w-5 mr-2" /> Recent Quiz Results
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {recentQuizResults.length === 0 ? (
-                  <p className="text-gray-600 dark:text-gray-400">No quiz results yet.</p>
-                ) : (
-                  <ul className="space-y-3">
-                    {recentQuizResults.map((result) => (
-                      <li key={result.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{result.quizzes.title}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Score: {result.score} / {result.total_questions} ({result.quizzes.subject})
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Submitted: {new Date(result.submitted_at).toLocaleDateString()}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <Button variant="link" className="w-full mt-4" asChild>
-                  <Link to="/my-quiz-results">View All Results</Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                  <CalendarDays className="h-5 w-5 mr-2" /> Upcoming Assignments
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {upcomingAssignments.length === 0 ? (
-                  <p className="text-gray-600 dark:text-gray-400">No upcoming assignments.</p>
-                ) : (
-                  <ul className="space-y-3">
-                    {upcomingAssignments.map((assignment) => (
-                      <li key={assignment.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{assignment.title}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Class: {assignment.classes.name}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Due: {assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : "N/A"}
-                        </p>
-                        <Button variant="link" size="sm" className="p-0 h-auto" asChild>
-                          <Link to={`/assignments/${assignment.id}`}>View Assignment</Link>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Recent Posts</h2>
+        {loading ? (
+          <p className="text-center text-gray-600 dark:text-gray-400">Loading posts...</p>
+        ) : (
+          <div className="space-y-6">
+            {posts.length === 0 ? (
+              <p className="text-center text-gray-600 dark:text-gray-400">No posts yet. Be the first to share something!</p>
+            ) : (
+              posts.map((post) => (
+                <Card key={post.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
+                  <CardHeader className="flex flex-row items-center space-x-3">
+                    <img
+                      src={post.profiles?.profile_picture_url || `https://api.dicebear.com/7.x/initials/svg?seed=${post.profiles?.full_name || 'User'}`}
+                      alt={post.profiles?.full_name || "User"}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div>
+                      <CardTitle className="text-lg text-gray-900 dark:text-gray-100">{post.profiles?.full_name || "Unknown User"}</CardTitle>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(post.created_at).toLocaleString()}</p>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {post.content_text && <p className="text-gray-800 dark:text-gray-200">{post.content_text}</p>}
+                    {post.content_image_url && (
+                      <img src={post.content_image_url} alt="Post image" className="w-full h-auto rounded-md object-cover max-h-96" />
+                    )}
+                    {post.content_video_url && (
+                      <video controls src={post.content_video_url} className="w-full h-auto rounded-md max-h-96">
+                        Your browser does not support the video tag.
+                      </video>
+                    )}
+                    <div className="flex items-center justify-between text-gray-600 dark:text-gray-400 text-sm mt-3">
+                      <div className="flex items-center space-x-4">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleLike(post.id)}
+                          className={`flex items-center ${post.likes.some(like => like.id === currentUserId) ? 'text-red-500' : ''}`}
+                        >
+                          <Heart className="h-4 w-4 mr-1" /> {post.likes.length} Likes
                         </Button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <Button variant="link" className="w-full mt-4" asChild>
-                  <Link to="/my-classes">View All Classes & Assignments</Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg md:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                  <Users className="h-5 w-5 mr-2" /> My Enrolled Classes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {enrolledClasses.length === 0 ? (
-                  <p className="text-gray-600 dark:text-gray-400">You are not enrolled in any classes yet.</p>
-                ) : (
-                  <ul className="space-y-3">
-                    {enrolledClasses.map((cls) => (
-                      <li key={cls.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{cls.name}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Subject: {cls.subject}</p>
-                        <Button variant="link" size="sm" className="p-0 h-auto" asChild>
-                          <Link to={`/classes/${cls.id}/discussions`}>Go to Class</Link>
+                        <Button variant="ghost" size="sm" className="flex items-center">
+                          <MessageSquare className="h-4 w-4 mr-1" /> {post.comments.length} Comments
                         </Button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <Button variant="link" className="w-full mt-4" asChild>
-                  <Link to="/my-classes">Manage My Classes</Link>
-                </Button>
-              </CardContent>
-            </Card>
+                      </div>
+                      <Button variant="ghost" size="sm" className="flex items-center">
+                        <Share2 className="h-4 w-4 mr-1" /> Share
+                      </Button>
+                    </div>
+                    <CommentSection postId={post.id} />
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
-        )}
-
-        {userProfile.role === "teacher" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                  <FlaskConical className="h-5 w-5 mr-2" /> Recent Quizzes Created
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {teacherQuizzes.length === 0 ? (
-                  <p className="text-gray-600 dark:text-gray-400">No quizzes created yet.</p>
-                ) : (
-                  <ul className="space-y-3">
-                    {teacherQuizzes.map((quiz) => (
-                      <li key={quiz.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{quiz.title}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Subject: {quiz.subject} {quiz.difficulty && `(${quiz.difficulty})`}
-                        </p>
-                        <Button variant="link" size="sm" className="p-0 h-auto" asChild>
-                          <Link to={`/teacher-quizzes`}>Manage Quiz</Link>
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <Button variant="link" className="w-full mt-4" asChild>
-                  <Link to="/teacher-quizzes">View All Quizzes</Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                  <FileText className="h-5 w-5 mr-2" /> Upcoming Assignments
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {teacherAssignments.length === 0 ? (
-                  <p className="text-gray-600 dark:text-gray-400">No upcoming assignments created.</p>
-                ) : (
-                  <ul className="space-y-3">
-                    {teacherAssignments.map((assignment) => (
-                      <li key={assignment.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{assignment.title}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Class: {assignment.classes.name}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Due: {assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : "N/A"}
-                        </p>
-                        <Button variant="link" size="sm" className="p-0 h-auto" asChild>
-                          <Link to={`/assignments/${assignment.id}`}>View Assignment</Link>
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <Button variant="link" className="w-full mt-4" asChild>
-                  <Link to="/classes">Manage All Assignments</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {userProfile.role === "personal" && (
-          <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">Your Personal Dashboard</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 dark:text-gray-400">
-                This is your personal space. You can use the calendar to track events, explore resources, and take quizzes.
-              </p>
-              <div className="mt-4 space-y-2">
-                <Button className="w-full" asChild><Link to="/calendar">Go to Calendar</Link></Button>
-                <Button className="w-full" asChild><Link to="/quizzes">Explore Quizzes</Link></Button>
-                <Button className="w-full" asChild><Link to="/resources">Browse Resources</Link></Button>
-              </div>
-            </CardContent>
-          </Card>
         )}
       </div>
     </div>
   );
 };
 
-export default Home;
+export default SocialFeed;
