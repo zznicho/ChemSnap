@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Import Link
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import CreateClassForm from "@/components/CreateClassForm";
 import CreateAssignmentForm from "@/components/CreateAssignmentForm";
-import { Users, BookOpen, PlusCircle, FileText } from "lucide-react";
+import { Users, BookOpen, PlusCircle, FileText, MessageSquare } from "lucide-react"; // Import MessageSquare
 
 interface Class {
   id: string;
@@ -175,10 +175,15 @@ const ClassManagement = () => {
                       <span className="flex items-center"><Users className="h-4 w-4 mr-1" /> {cls.student_count} Students</span>
                       <span className="flex items-center"><BookOpen className="h-4 w-4 mr-1" /> {cls.assignments.length} Assignments</span>
                     </div>
-                    <div className="mt-4">
-                      <Button onClick={() => handleOpenCreateAssignmentDialog(cls.id)} className="w-full" variant="outline">
-                        <PlusCircle className="h-4 w-4 mr-2" /> Create New Assignment
+                    <div className="mt-4 flex gap-2">
+                      <Button onClick={() => handleOpenCreateAssignmentDialog(cls.id)} className="flex-1" variant="outline">
+                        <PlusCircle className="h-4 w-4 mr-2" /> Create Assignment
                       </Button>
+                      <Link to={`/classes/${cls.id}/discussions`} className="flex-1">
+                        <Button className="w-full" variant="secondary">
+                          <MessageSquare className="h-4 w-4 mr-2" /> Discussions
+                        </Button>
+                      </Link>
                     </div>
 
                     {cls.assignments.length > 0 && (
@@ -193,9 +198,11 @@ const ClassManagement = () => {
                                   Due: {assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : "No due date"} | {assignment.total_points} points
                                 </p>
                               </div>
-                              <Button variant="ghost" size="sm">
-                                <FileText className="h-4 w-4 mr-1" /> View
-                              </Button>
+                              <Link to={`/assignments/${assignment.id}`}>
+                                <Button variant="ghost" size="sm">
+                                  <FileText className="h-4 w-4 mr-1" /> View
+                                </Button>
+                              </Link>
                             </li>
                           ))}
                         </ul>
