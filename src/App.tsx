@@ -18,7 +18,8 @@ import HSCResources from "./pages/HSCResources";
 import MyClasses from "./pages/MyClasses";
 import AssignmentDetails from "./pages/AssignmentDetails";
 import QuizDetails from "./pages/QuizDetails";
-import TeacherQuizManagement from "./pages/TeacherQuizManagement"; // Import TeacherQuizManagement
+import TeacherQuizManagement from "./pages/TeacherQuizManagement";
+import ClassDiscussionPage from "./pages/ClassDiscussionPage"; // Import ClassDiscussionPage
 import Layout from "./components/Layout";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -46,7 +47,8 @@ const App = () => (
               <Route path="/hsc-resources" element={<HSCResources />} />
               <Route path="/my-classes" element={<MyClasses />} />
               <Route path="/assignments/:assignmentId" element={<AssignmentDetails />} />
-              <Route path="/teacher-quizzes" element={<TeacherQuizManagement />} /> {/* New route for teacher quiz management */}
+              <Route path="/teacher-quizzes" element={<TeacherQuizManagement />} />
+              <Route path="/classes/:classId/discussions" element={<ClassDiscussionPage />} /> {/* New route for class discussions */}
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

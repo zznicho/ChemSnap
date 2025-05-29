@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import JoinClassForm from "@/components/JoinClassForm";
-import { BookOpen, Users, FileText } from "lucide-react";
+import { BookOpen, Users, FileText, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface EnrolledClass {
   id: string;
@@ -25,7 +26,7 @@ interface EnrolledClass {
       due_date: string | null;
       total_points: number;
     }[];
-    student_count: number; // Add student_count to the nested classes object
+    student_count: number;
   };
 }
 
@@ -110,7 +111,6 @@ const MyClasses = () => {
       showError("Failed to fetch enrolled classes: " + error.message);
       console.error("Error fetching enrolled classes:", error);
     } else {
-      // Map the data to include student_count within the nested classes object
       const enrolledClassesWithCounts = data.map(enrollment => ({
         ...enrollment,
         classes: {
@@ -138,7 +138,7 @@ const MyClasses = () => {
   }
 
   if (userRole !== "student") {
-    return null; // Should have been redirected by now
+    return null;
   }
 
   return (
@@ -174,6 +174,14 @@ const MyClasses = () => {
                     <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
                       <span className="flex items-center"><Users className="h-4 w-4 mr-1" /> {enrollment.classes.student_count} Students</span>
                       <span className="flex items-center"><BookOpen className="h-4 w-4 mr-1" /> {enrollment.classes.assignments.length} Assignments</span>
+                    </div>
+
+                    <div className="mt-4 flex gap-2">
+                      <Link to={`/classes/${enrollment.classes.id}/discussions`} className="flex-1">
+                        <Button className="w-full" variant="secondary">
+                          <MessageSquare className="h-4 w-4 mr-2" /> Discussions
+                        </Button>
+                      </Link>
                     </div>
 
                     {enrollment.classes.assignments.length > 0 && (
