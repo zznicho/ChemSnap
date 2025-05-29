@@ -12,6 +12,7 @@ export default defineConfig(() => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'], // Explicitly add .tsx
+    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
   },
+  base: './', // Added this line to ensure relative path resolution
 }));
