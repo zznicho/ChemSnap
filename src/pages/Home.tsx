@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState, useCallback } from "react";
 import { showError, showSuccess } from "@/utils/toast";
 import CreatePostForm from "@/components/CreatePostForm";
+import CommentSection from "@/components/CommentSection"; // Import CommentSection
 import { ThumbsUp } from "lucide-react"; // Import ThumbsUp icon
 
 interface Post {
@@ -16,7 +17,7 @@ interface Post {
     full_name: string;
     profile_picture_url: string;
   };
-  likes: { id: string }[]; // Add likes array to Post interface
+  likes: { id: string, user_id: string }[]; // Add user_id to likes array
 }
 
 const Home = () => {
@@ -151,8 +152,8 @@ const Home = () => {
                           {likeCount > 0 && <span className="ml-1">{likeCount}</span>}
                           Like
                         </Button>
-                        <Button variant="ghost" size="sm" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">Comment</Button>
                       </div>
+                      <CommentSection postId={post.id} /> {/* Integrate CommentSection here */}
                     </CardContent>
                   </Card>
                 );
