@@ -19,7 +19,9 @@ import MyClasses from "./pages/MyClasses";
 import AssignmentDetails from "./pages/AssignmentDetails";
 import QuizDetails from "./pages/QuizDetails";
 import TeacherQuizManagement from "./pages/TeacherQuizManagement";
-import ClassDiscussionPage from "./pages/ClassDiscussionPage"; // Import ClassDiscussionPage
+import ClassDiscussionPage from "./pages/ClassDiscussionPage";
+import MyQuizResults from "./pages/MyQuizResults"; // Import MyQuizResults
+import TeacherQuizAnalytics from "./pages/TeacherQuizAnalytics"; // Import TeacherQuizAnalytics
 import Layout from "./components/Layout";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -48,7 +50,9 @@ const App = () => (
               <Route path="/my-classes" element={<MyClasses />} />
               <Route path="/assignments/:assignmentId" element={<AssignmentDetails />} />
               <Route path="/teacher-quizzes" element={<TeacherQuizManagement />} />
-              <Route path="/classes/:classId/discussions" element={<ClassDiscussionPage />} /> {/* New route for class discussions */}
+              <Route path="/classes/:classId/discussions" element={<ClassDiscussionPage />} />
+              <Route path="/my-quiz-results" element={<MyQuizResults />} /> {/* New route for student quiz results */}
+              <Route path="/quiz-analytics" element={<TeacherQuizAnalytics />} /> {/* New route for teacher quiz analytics */}
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

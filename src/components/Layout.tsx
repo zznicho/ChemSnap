@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Library, Users as UsersIcon, FlaskConical } from "lucide-react"; // Import FlaskConical
+import { Home as HomeIcon, Newspaper, Book, Brain, CalendarDays, User, GraduationCap, Library, Users as UsersIcon, FlaskConical, BarChart2 } from "lucide-react"; // Import BarChart2 for analytics
 import { Button } from "@/components/ui/button";
 import { MadeWithDyad } from "./made-with-dyad";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,11 +48,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Add Class Management for teachers
   if (!loadingRole && userRole === "teacher") {
     navItems.push({ path: "/classes", icon: GraduationCap, label: "Classes" });
-    navItems.push({ path: "/teacher-quizzes", icon: FlaskConical, label: "Manage Quizzes" }); // New link for teachers
+    navItems.push({ path: "/teacher-quizzes", icon: FlaskConical, label: "Manage Quizzes" });
+    navItems.push({ path: "/quiz-analytics", icon: BarChart2, label: "Quiz Analytics" }); // New link for teachers
   }
-  // Add My Classes for students
+  // Add My Classes and My Quiz Results for students
   if (!loadingRole && userRole === "student") {
     navItems.push({ path: "/my-classes", icon: UsersIcon, label: "My Classes" });
+    navItems.push({ path: "/my-quiz-results", icon: Award, label: "My Quiz Results" }); // New link for students
   }
 
   return (
