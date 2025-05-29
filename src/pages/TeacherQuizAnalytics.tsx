@@ -18,13 +18,14 @@ interface Quiz {
   title: string;
   subject: string;
   difficulty: string | null;
-  questions: { id: string }[]; // To count total questions
+  questions: { id: string; points: number }[]; // To count total questions and sum points
 }
 
 interface QuizResult {
   id: string;
   score: number;
   total_questions: number;
+  total_score_possible: number | null; // Add total_score_possible
   submitted_at: string;
   user_id: string;
   profiles: {
@@ -93,11 +94,12 @@ const TeacherQuizAnalytics = () => {
         title,
         subject,
         difficulty,
-        questions (id),
+        questions (id, points),
         quiz_results (
           id,
           score,
           total_questions,
+          total_score_possible,
           submitted_at,
           user_id,
           profiles (
@@ -163,10 +165,12 @@ const TeacherQuizAnalytics = () => {
             ) : (
               quizzesWithResults.map((quiz) => {
                 const totalSubmissions = quiz.quiz_results.length;
+                const totalQuestions = quiz.questions.length;
+                const totalPossiblePoints = quiz.questions.reduce((sum, q) => sum + q.points, 0);
+
                 const averageScore = totalSubmissions > 0
                   ? (quiz.quiz_results.reduce((sum, result) => sum + result.score, 0) / totalSubmissions).toFixed(2)
                   : "N/A";
-                const totalQuestions = quiz.questions.length;
 
                 return (
                   <Card key={quiz.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
@@ -178,13 +182,13 @@ const TeacherQuizAnalytics = () => {
                       <div className="flex flex-wrap gap-2 mt-2 text-sm text-gray-600 dark:text-gray-400">
                         <Badge variant="secondary">{quiz.subject}</Badge>
                         {quiz.difficulty && <Badge variant="secondary">{quiz.difficulty}</Badge>}
-                        <span className="flex items-center"><Hash className="h-4 w-4 mr-1" /> {totalQuestions} Questions</span>
+                        <span className="flex items-center"><Hash className="h-4 w-4 mr-1" /> {totalQuestions} Questions ({totalPossiblePoints} Points)</span>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex items-center space-x-4 text-base text-gray-800 dark:text-gray-200">
                         <span className="flex items-center"><Users className="h-4 w-4 mr-1" /> Submissions: {totalSubmissions}</span>
-                        <span className="flex items-center"><Award className="h-4 w-4 mr-1" /> Avg. Score: {averageScore} / {totalQuestions}</span>
+                        <span className="flex items-center"><Award className="h-4 w-4 mr-1" /> Avg. Score: {averageScore} / {totalPossiblePoints}</span>
                       </div>
 
                       {totalSubmissions > 0 && (
@@ -198,7 +202,9 @@ const TeacherQuizAnalytics = () => {
                                   <p className="text-xs text-gray-600 dark:text-gray-400">{result.profiles?.email}</p>
                                 </div>
                                 <div className="text-right">
-                                  <p className="font-bold text-primary dark:text-primary-foreground">{result.score} / {result.total_questions}</p>
+                                  <p className="font-bold text-primary dark:text-primary-foreground">
+                                    {result.score} / {result.total_score_possible !== null ? result.total_score_possible : result.total_questions}
+                                  </p>
                                   <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(result.submitted_at).toLocaleDateString()}</p>
                                 </div>
                               </li>

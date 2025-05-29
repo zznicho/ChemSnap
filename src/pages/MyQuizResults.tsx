@@ -10,6 +10,7 @@ interface QuizResult {
   id: string;
   score: number;
   total_questions: number;
+  total_score_possible: number | null; // Add total_score_possible
   submitted_at: string;
   quizzes: {
     title: string;
@@ -80,6 +81,7 @@ const MyQuizResults = () => {
         id,
         score,
         total_questions,
+        total_score_possible,
         submitted_at,
         quizzes (
           title,
@@ -153,7 +155,7 @@ const MyQuizResults = () => {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <p className="text-lg font-bold text-primary dark:text-primary-foreground">
-                    Score: {result.score} / {result.total_questions}
+                    Score: {result.score} / {result.total_score_possible !== null ? result.total_score_possible : result.total_questions}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
                     <CalendarDays className="h-4 w-4 mr-1" /> Submitted: {new Date(result.submitted_at).toLocaleString()}

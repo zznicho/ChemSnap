@@ -15,6 +15,7 @@ interface Question {
   options: string[];
   correct_answer: string;
   explanation: string | null;
+  points: number; // Add points
 }
 
 interface Quiz {
@@ -59,10 +60,12 @@ const QuizDetails = () => {
           question_type,
           options,
           correct_answer,
-          explanation
+          explanation,
+          points
         )
       `)
       .eq("id", quizId)
+      .eq("is_published", true) // Only fetch published quizzes
       .single();
 
     if (error) {
@@ -89,13 +92,16 @@ const QuizDetails = () => {
       return;
     }
 
-    let correctCount = 0;
+    let correctPoints = 0;
+    let totalPossiblePoints = 0;
+
     quiz.questions.forEach((question) => {
+      totalPossiblePoints += question.points;
       if (userAnswers[question.id] === question.correct_answer) {
-        correctCount++;
+        correctPoints += question.points;
       }
     });
-    setScore(correctCount);
+    setScore(correctPoints);
     setSubmitted(true);
 
     // Save quiz result to database
@@ -104,15 +110,16 @@ const QuizDetails = () => {
       .insert({
         quiz_id: quiz.id,
         user_id: currentUserId,
-        score: correctCount,
+        score: correctPoints,
         total_questions: quiz.questions.length,
+        total_score_possible: totalPossiblePoints, // Save total possible score
       });
 
     if (insertError) {
       showError("Failed to save quiz result: " + insertError.message);
       console.error("Error saving quiz result:", insertError);
     } else {
-      showSuccess(`Quiz completed! You scored ${correctCount} out of ${quiz.questions.length}. Result saved.`);
+      showSuccess(`Quiz completed! You scored ${correctPoints} out of ${totalPossiblePoints}. Result saved.`);
     }
   };
 
@@ -127,10 +134,12 @@ const QuizDetails = () => {
   if (!quiz) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-        <p className="text-gray-600 dark:text-gray-400">Quiz not found.</p>
+        <p className="text-gray-600 dark:text-gray-400">Quiz not found or not published.</p>
       </div>
     );
   }
+
+  const totalQuizPoints = quiz.questions.reduce((sum, q) => sum + q.points, 0);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
@@ -145,6 +154,7 @@ const QuizDetails = () => {
               <span>Subject: {quiz.subject}</span>
               {quiz.difficulty && <span>Difficulty: {quiz.difficulty}</span>}
               <span>Questions: {quiz.questions.length}</span>
+              <span>Total Points: {totalQuizPoints}</span>
             </div>
           </CardHeader>
         </Card>
@@ -152,7 +162,7 @@ const QuizDetails = () => {
         {submitted && (
           <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg mb-6 p-4 text-center">
             <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              Your Score: {score} / {quiz.questions.length}
+              Your Score: {score} / {totalQuizPoints}
             </CardTitle>
             <p className="text-gray-600 dark:text-gray-400 mt-2">Review your answers below.</p>
           </Card>
@@ -166,7 +176,7 @@ const QuizDetails = () => {
               <Card key={question.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
                 <CardHeader>
                   <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    {index + 1}. {question.question_text}
+                    {index + 1}. {question.question_text} ({question.points} points)
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
