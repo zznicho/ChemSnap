@@ -1,83 +1,123 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const elements = [
-  { symbol: 'H', name: 'Hydrogen', atomic_number: 1, group: 1, period: 1, color: 'bg-blue-200' },
-  { symbol: 'He', name: 'Helium', atomic_number: 2, group: 18, period: 1, color: 'bg-purple-200' },
-  { symbol: 'Li', name: 'Lithium', atomic_number: 3, group: 1, period: 2, color: 'bg-red-200' },
-  { symbol: 'Be', name: 'Beryllium', atomic_number: 4, group: 2, period: 2, color: 'bg-green-200' },
-  { symbol: 'B', name: 'Boron', atomic_number: 5, group: 13, period: 2, color: 'bg-yellow-200' },
-  { symbol: 'C', name: 'Carbon', atomic_number: 6, group: 14, period: 2, color: 'bg-gray-200' },
-  { symbol: 'N', name: 'Nitrogen', atomic_number: 7, group: 15, period: 2, color: 'bg-blue-300' },
-  { symbol: 'O', name: 'Oxygen', atomic_number: 8, group: 16, period: 2, color: 'bg-red-300' },
-  { symbol: 'F', name: 'Fluorine', atomic_number: 9, group: 17, period: 2, color: 'bg-green-300' },
-  { symbol: 'Ne', name: 'Neon', atomic_number: 10, group: 18, period: 2, color: 'bg-purple-300' },
-  { symbol: 'Na', name: 'Sodium', atomic_number: 11, group: 1, period: 3, color: 'bg-red-200' },
-  { symbol: 'Mg', name: 'Magnesium', atomic_number: 12, group: 2, period: 3, color: 'bg-green-200' },
-  { symbol: 'Al', name: 'Aluminum', atomic_number: 13, group: 13, period: 3, color: 'bg-yellow-200' },
-  { symbol: 'Si', name: 'Silicon', atomic_number: 14, group: 14, period: 3, color: 'bg-gray-200' },
-  { symbol: 'P', name: 'Phosphorus', atomic_number: 15, group: 15, period: 3, color: 'bg-blue-300' },
-  { symbol: 'S', name: 'Sulfur', atomic_number: 16, group: 16, period: 3, color: 'bg-red-300' },
-  { symbol: 'Cl', name: 'Chlorine', atomic_number: 17, group: 17, period: 3, color: 'bg-green-300' },
-  { symbol: 'Ar', name: 'Argon', atomic_number: 18, group: 18, period: 3, color: 'bg-purple-300' },
-];
+import { periodicElements, ElementData } from "@/data/periodicElements";
 
 const PeriodicTable = () => {
+  const [selectedElement, setSelectedElement] = useState<ElementData | null>(null);
+
+  const getCategoryColorClass = (category: string) => {
+    switch (category) {
+      case 'alkali-metal': return 'bg-elements-alkali-metal';
+      case 'alkaline-earth-metal': return 'bg-elements-alkaline-earth-metal';
+      case 'transition-metal': return 'bg-elements-transition-metal';
+      case 'post-transition-metal': return 'bg-elements-post-transition-metal';
+      case 'metalloid': return 'bg-elements-metalloid';
+      case 'nonmetal': return 'bg-elements-nonmetal';
+      case 'halogen': return 'bg-elements-halogen';
+      case 'noble-gas': return 'bg-elements-noble-gas';
+      case 'lanthanide': return 'bg-elements-lanthanide';
+      case 'actinide': return 'bg-elements-actinide';
+      default: return 'bg-gray-200 dark:bg-gray-600'; // Default fallback
+    }
+  };
+
   return (
     <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
       <CardHeader>
-        <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Periodic Table of Elements</CardTitle>
+        <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Full Periodic Table of Elements</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-18 gap-1 text-xs md:text-sm">
-          {/* Empty cells for alignment */}
-          {Array(18).fill(null).map((_, i) => (
-            <div key={`header-${i}`} className="text-center font-bold text-gray-600 dark:text-gray-400">{i + 1}</div>
-          ))}
-          {/* Period 1 */}
-          <div className="text-center font-bold text-gray-600 dark:text-gray-400">1</div>
-          {elements.filter(e => e.period === 1).sort((a, b) => a.group - b.group).map(element => (
-            <div
-              key={element.symbol}
-              className={`p-1 border border-gray-300 dark:border-gray-600 rounded flex flex-col items-center justify-center ${element.color} text-gray-900 dark:text-gray-900`}
-              style={{ gridColumn: element.group }}
-            >
-              <span className="font-bold">{element.atomic_number}</span>
-              <span className="font-bold text-lg">{element.symbol}</span>
-              <span className="text-xs text-center">{element.name}</span>
+        <div className="grid grid-cols-18 gap-0.5 text-xs md:text-sm overflow-x-auto">
+          {/* Column Headers (Groups) */}
+          {Array.from({ length: 18 }, (_, i) => (
+            <div key={`group-header-${i + 1}`} className="text-center font-bold text-gray-600 dark:text-gray-400 p-1">
+              {i + 1}
             </div>
           ))}
-          {/* Period 2 */}
-          <div className="text-center font-bold text-gray-600 dark:text-gray-400">2</div>
-          {elements.filter(e => e.period === 2).sort((a, b) => a.group - b.group).map(element => (
-            <div
-              key={element.symbol}
-              className={`p-1 border border-gray-300 dark:border-gray-600 rounded flex flex-col items-center justify-center ${element.color} text-gray-900 dark:text-gray-900`}
-              style={{ gridColumn: element.group }}
-            >
-              <span className="font-bold">{element.atomic_number}</span>
-              <span className="font-bold text-lg">{element.symbol}</span>
-              <span className="text-xs text-center">{element.name}</span>
-            </div>
-          ))}
-          {/* Period 3 */}
-          <div className="text-center font-bold text-gray-600 dark:text-gray-400">3</div>
-          {elements.filter(e => e.period === 3).sort((a, b) => a.group - b.group).map(element => (
-            <div
-              key={element.symbol}
-              className={`p-1 border border-gray-300 dark:border-gray-600 rounded flex flex-col items-center justify-center ${element.color} text-gray-900 dark:text-gray-900`}
-              style={{ gridColumn: element.group }}
-            >
-              <span className="font-bold">{element.atomic_number}</span>
-              <span className="font-bold text-lg">{element.symbol}</span>
-              <span className="text-xs text-center">{element.name}</span>
-            </div>
-          ))}
-          {/* Note: This is a simplified table. For a full table, more elements and complex grid positioning would be needed. */}
+
+          {/* Period Headers and Elements */}
+          {Array.from({ length: 9 }, (_, periodIndex) => {
+            const periodNum = periodIndex + 1;
+            return (
+              <React.Fragment key={`period-row-${periodNum}`}>
+                {/* Period Number */}
+                <div className="text-center font-bold text-gray-600 dark:text-gray-400 p-1" style={{ gridColumn: 1, gridRow: periodNum + 1 }}>
+                  {periodNum}
+                </div>
+                {/* Elements for this period */}
+                {periodicElements
+                  .filter(e => e.ypos === periodNum)
+                  .map(element => (
+                    <div
+                      key={element.symbol}
+                      className={`p-1 border border-gray-300 dark:border-gray-600 rounded flex flex-col items-center justify-center cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all duration-100
+                        ${getCategoryColorClass(element.category)}
+                        ${selectedElement?.atomic_number === element.atomic_number ? 'ring-2 ring-blue-500' : ''}
+                      `}
+                      style={{ gridColumn: element.xpos, gridRow: element.ypos + 1 }}
+                      onClick={() => setSelectedElement(element)}
+                    >
+                      <span className="font-bold text-gray-900 dark:text-gray-900">{element.atomic_number}</span>
+                      <span className="font-bold text-lg text-gray-900 dark:text-gray-900">{element.symbol}</span>
+                      <span className="text-xs text-center text-gray-800 dark:text-gray-800">{element.name}</span>
+                    </div>
+                  ))}
+                {/* Placeholder for Lanthanides/Actinides in main table */}
+                {(periodNum === 6 || periodNum === 7) && (
+                  <div
+                    className="p-1 border border-gray-300 dark:border-gray-600 rounded flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all duration-100"
+                    style={{ gridColumn: 3, gridRow: periodNum + 1 }}
+                    onClick={() => setSelectedElement(null)} // Clear selection if clicking placeholder
+                  >
+                    {periodNum === 6 ? '57-71' : '89-103'}
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
-          This is a simplified periodic table for quick reference.
-        </p>
+
+        {/* Element Details Display */}
+        {selectedElement && (
+          <Card className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+            <CardHeader className="p-0 pb-2">
+              <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                {selectedElement.name} ({selectedElement.symbol})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 text-gray-800 dark:text-gray-200">
+              <p><strong>Atomic Number:</strong> {selectedElement.atomic_number}</p>
+              <p><strong>Atomic Weight:</strong> {selectedElement.atomic_weight.toFixed(4)}</p>
+              <p><strong>Category:</strong> <span className="capitalize">{selectedElement.category.replace(/-/g, ' ')}</span></p>
+              <p><strong>Period:</strong> {selectedElement.period}</p>
+              {selectedElement.group && <p><strong>Group:</strong> {selectedElement.group}</p>}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Color Legend */}
+        <div className="mt-6 p-4 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700">
+          <h3 className="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">Element Categories:</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-sm">
+            {Object.entries({
+              'alkali-metal': 'Alkali Metals',
+              'alkaline-earth-metal': 'Alkaline Earth Metals',
+              'transition-metal': 'Transition Metals',
+              'post-transition-metal': 'Post-Transition Metals',
+              'metalloid': 'Metalloids',
+              'nonmetal': 'Nonmetals',
+              'halogen': 'Halogens',
+              'noble-gas': 'Noble Gases',
+              'lanthanide': 'Lanthanides',
+              'actinide': 'Actinides',
+            }).map(([category, label]) => (
+              <div key={category} className="flex items-center">
+                <span className={`w-4 h-4 rounded-sm mr-2 ${getCategoryColorClass(category)}`}></span>
+                <span className="text-gray-800 dark:text-gray-200">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

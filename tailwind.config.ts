@@ -62,6 +62,19 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // New colors for periodic table elements
+        elements: {
+          'alkali-metal': 'hsl(30 80% 70%)', // Light orange
+          'alkaline-earth-metal': 'hsl(60 80% 70%)', // Light yellow
+          'transition-metal': 'hsl(200 60% 70%)', // Light blue
+          'post-transition-metal': 'hsl(120 40% 70%)', // Light green
+          'metalloid': 'hsl(270 40% 70%)', // Light purple
+          'nonmetal': 'hsl(0 0% 85%)', // Light gray
+          'halogen': 'hsl(10 80% 70%)', // Light red-orange
+          'noble-gas': 'hsl(240 80% 70%)', // Light blue-purple
+          'lanthanide': 'hsl(300 60% 70%)', // Light magenta
+          'actinide': 'hsl(330 60% 70%)', // Light pink
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
