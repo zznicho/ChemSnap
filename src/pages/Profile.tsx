@@ -192,7 +192,8 @@ const Profile = () => {
     }
   };
 
-  const handleEmailChangeSubmit = async () => {
+  const handleEmailChangeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent default form submission
     setIsEmailChanging(true);
     if (!currentAuthUserId || !newEmail) {
       showError("Invalid request. Please log in and provide a new email.");
@@ -527,7 +528,7 @@ const Profile = () => {
               You will be logged out and need to confirm the change via the link in the email.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={forgotPasswordForm.handleSubmit(handleEmailChangeSubmit)} className="space-y-4 py-4">
+          <form onSubmit={handleEmailChangeSubmit} className="space-y-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="newEmail" className="text-right">
                 New Email
