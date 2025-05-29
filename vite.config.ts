@@ -15,4 +15,9 @@ export default defineConfig(() => ({
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
   },
   base: './', // Keep relative path for Vercel deployment
+  build: {
+    rollupOptions: {
+      input: 'index.html', // Explicitly define index.html as the entry point
+    },
+  },
 }));
