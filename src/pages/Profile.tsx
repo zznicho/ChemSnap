@@ -6,6 +6,9 @@ import { useNavigate } from "react-router-dom";
 import { showError, showSuccess } from "@/utils/toast";
 import ProfileEditForm from "@/components/ProfileEditForm";
 import AccountActions from "@/components/AccountActions";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Profile {
   full_name: string;
@@ -13,8 +16,8 @@ interface Profile {
   role: string;
   education_level?: string | null;
   profile_picture_url?: string | null;
-  current_streak: number; // Add current_streak
-  last_activity_date: string | null; // Add last_activity_date
+  current_streak: number;
+  last_activity_date: string | null;
 }
 
 const Profile = () => {
@@ -23,6 +26,9 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isEmailChangeDialogOpen, setIsEmailChangeDialogOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [isEmailChanging, setIsEmailChanging] = useState(false);
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -31,7 +37,7 @@ const Profile = () => {
     if (user) {
       const { data, error } = await supabase
         .from("profiles")
-        .select("full_name, email, role, education_level, profile_picture_url, current_streak, last_activity_date") // Select new fields
+        .select("full_name, email, role, education_level, profile_picture_url, current_streak, last_activity_date")
         .eq("id", user.id)
         .single();
 
@@ -40,7 +46,7 @@ const Profile = () => {
         console.error("Error fetching profile:", error);
         setUserProfile(null);
       } else {
-        setUserProfile(data as Profile); // Cast to Profile type
+        setUserProfile(data as Profile);
       }
     } else {
       navigate("/login");
@@ -108,22 +114,67 @@ const Profile = () => {
     }
   };
 
-  const handleChangeEmail = async () => {
+  const handleEmailChangeSubmit = async () => {
+    setIsEmailChanging(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      showError("Email change functionality requires a new email input and verification. Please contact support for now.");
-    } else {
-      showError("You must be logged in to change your email.");
+    if (!user || !newEmail) {
+      showError("Invalid request. Please log in and provide a new email.");
+      setIsEmailChanging(false);
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+
+      if (error) {
+        showError("Failed to update email: " + error.message);
+        console.error("Error updating email:", error);
+      } else {
+        showSuccess("Email change request sent! Please check your NEW email to confirm the change.");
+        setIsEmailChangeDialogOpen(false);
+        setNewEmail(""); // Clear the input
+        // User will be signed out by Supabase until new email is confirmed
+        await supabase.auth.signOut();
+        navigate("/login");
+      }
+    } catch (error: any) {
+      showError("An unexpected error occurred: " + error.message);
+      console.error("Unexpected error:", error);
+    } finally {
+      setIsEmailChanging(false);
     }
   };
 
   const handleDeleteAccount = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      showError("Failed to sign out before account deletion attempt: " + error.message);
-    } else {
-      showSuccess("Your account has been signed out. For full account deletion, please contact support or refer to the app's documentation for further steps.");
-      navigate("/login");
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      showError("You must be logged in to delete your account.");
+      return;
+    }
+
+    try {
+      const response = await fetch('https://uiojlzfcxxtmrubnrkbv.supabase.co/functions/v1/delete-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
+        },
+        body: JSON.stringify({ user_id: user.id }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        showError("Account deletion failed: " + (result.error || "Unknown error"));
+        console.error("Account deletion error:", result);
+      } else {
+        showSuccess("Your account has been successfully deleted.");
+        await supabase.auth.signOut(); // Sign out locally after successful deletion
+        navigate("/login");
+      }
+    } catch (error: any) {
+      showError("An unexpected error occurred during account deletion: " + error.message);
+      console.error("Unexpected error during deletion:", error);
     }
   };
 
@@ -172,7 +223,7 @@ const Profile = () => {
               {userProfile.role === "student" && (
                 <div className="text-center text-gray-700 dark:text-gray-300">
                   <h3 className="font-semibold text-lg mb-2">Student Progress</h3>
-                  <p>Current Streak: {userProfile.current_streak} days 🔥</p> {/* Display streak */}
+                  <p>Current Streak: {userProfile.current_streak} days 🔥</p>
                   <p>Achievements: None yet</p>
                 </div>
               )}
@@ -182,13 +233,51 @@ const Profile = () => {
               <AccountActions
                 onLogout={handleLogout}
                 onChangePassword={handleChangePassword}
-                onChangeEmail={handleChangeEmail}
+                onChangeEmail={() => setIsEmailChangeDialogOpen(true)} // Open dialog for email change
                 onDeleteAccount={handleDeleteAccount}
               />
             </>
           )}
         </CardContent>
       </Card>
+
+      {/* Email Change Dialog */}
+      <Dialog open={isEmailChangeDialogOpen} onOpenChange={setIsEmailChangeDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Change Email</DialogTitle>
+            <DialogDescription>
+              Enter your new email address. A confirmation email will be sent to the new address.
+              You will be logged out and need to confirm the change via the link in the email.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="newEmail" className="text-right">
+                New Email
+              </Label>
+              <Input
+                id="newEmail"
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                className="col-span-3"
+                disabled={isEmailChanging}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="outline" disabled={isEmailChanging}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button type="submit" onClick={handleEmailChangeSubmit} disabled={isEmailChanging || !newEmail}>
+              {isEmailChanging ? "Sending..." : "Change Email"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
