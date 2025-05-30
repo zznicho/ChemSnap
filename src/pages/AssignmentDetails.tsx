@@ -152,7 +152,7 @@ const AssignmentDetails = () => {
       <div className="w-full max-w-2xl">
         <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg mb-6">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">{assignment.title}</CardTitle>
+            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100 font-chemistry">{assignment.title}</CardTitle>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               From: {assignment.classes.name} ({assignment.classes.subject}, {assignment.classes.year_level})
             </p>
