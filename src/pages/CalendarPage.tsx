@@ -261,7 +261,7 @@ const CalendarPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
       <div className="w-full max-w-3xl">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100 font-chemistry">
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">
           Your Calendar
         </h1>
 
@@ -269,7 +269,7 @@ const CalendarPage = () => {
           <div className="md:w-1/2 w-full">
             <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 font-chemistry mb-4">Select Date</CardTitle>
+                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Select Date</CardTitle>
               </CardHeader>
               <CardContent>
                 <Calendar
@@ -322,7 +322,7 @@ const CalendarPage = () => {
           <div className="md:w-1/2 w-full">
             <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 font-chemistry mb-4">
+                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
                   Items on {selectedDate ? format(selectedDate, "PPP") : "No date selected"}
                 </CardTitle>
               </CardHeader>
