@@ -6,7 +6,9 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface HSCResource {
   id: string;
@@ -24,8 +26,29 @@ interface HSCResource {
 }
 
 const Resources = () => {
+  const navigate = useNavigate();
   const [hscResources, setHscResources] = useState<HSCResource[]>([]);
   const [loadingHscResources, setLoadingHscResources] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+        if (error) {
+          console.error("Error fetching user role for resources:", error);
+        } else if (profile) {
+          setUserRole(profile.role);
+        }
+      }
+    };
+    fetchUserRole();
+  }, []);
 
   const fetchHscResources = useCallback(async () => {
     setLoadingHscResources(true);
@@ -49,6 +72,12 @@ const Resources = () => {
     fetchHscResources();
   }, [fetchHscResources]);
 
+  const handleManageResourcesClick = () => {
+    navigate("/admin/resources");
+  };
+
+  const canManageResources = userRole === "admin";
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
       <div className="w-full max-w-3xl">
@@ -56,6 +85,14 @@ const Resources = () => {
         <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
           Your comprehensive guide for chemistry studies, from fundamental concepts to career paths.
         </p>
+
+        {canManageResources && (
+          <div className="mb-8">
+            <Button className="w-full" onClick={handleManageResourcesClick}>
+              <Settings className="h-4 w-4 mr-2" /> Manage HSC Resources (Admin)
+            </Button>
+          </div>
+        )}
 
         <Tabs defaultValue="general" className="w-full">
           <TabsList className="grid w-full grid-cols-2">

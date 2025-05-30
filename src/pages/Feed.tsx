@@ -38,13 +38,28 @@ const SocialFeed = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndRole = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
+
+      if (user) {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching user role:", error);
+        } else if (profile) {
+          setUserRole(profile.role);
+        }
+      }
     };
-    fetchUser();
+    fetchUserAndRole();
   }, []);
 
   const fetchPosts = useCallback(async () => {
@@ -144,13 +159,25 @@ const SocialFeed = () => {
     }
   };
 
-  const handleDeletePost = async (postId: string) => {
+  const handleDeletePost = async (postId: string, authorId: string) => {
+    if (!currentUserId) {
+      showError("You must be logged in to delete a post.");
+      return;
+    }
+
+    // Allow admin to delete any post, or author to delete their own
+    const canDelete = userRole === "admin" || currentUserId === authorId;
+
+    if (!canDelete) {
+      showError("You do not have permission to delete this post.");
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from("posts")
         .delete()
-        .eq("id", postId)
-        .eq("author_id", currentUserId); // Ensure only author can delete
+        .eq("id", postId); // RLS will handle permission check
 
       if (error) {
         showError("Failed to delete post: " + error.message);
@@ -199,7 +226,7 @@ const SocialFeed = () => {
                         <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(post.created_at).toLocaleString()}</p>
                       </div>
                     </Link>
-                    {currentUserId === post.author_id && (
+                    {(userRole === "admin" || currentUserId === post.author_id) && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
@@ -215,7 +242,7 @@ const SocialFeed = () => {
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeletePost(post.id)} className="bg-red-600 hover:bg-red-700">
+                            <AlertDialogAction onClick={() => handleDeletePost(post.id, post.author_id)} className="bg-red-600 hover:bg-red-700">
                               Yes, delete post
                             </AlertDialogAction>
                           </AlertDialogFooter>

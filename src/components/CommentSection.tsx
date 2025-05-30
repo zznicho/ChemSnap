@@ -46,20 +46,28 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-  const form = useForm<z.infer<typeof commentFormSchema>>({
-    resolver: zodResolver(commentFormSchema),
-    defaultValues: {
-      comment_text: "",
-    },
-  });
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndRole = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
+
+      if (user) {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching user role:", error);
+        } else if (profile) {
+          setUserRole(profile.role);
+        }
+      }
     };
-    fetchUser();
+    fetchUserAndRole();
   }, []);
 
   const fetchComments = useCallback(async () => {
@@ -125,13 +133,25 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
     }
   };
 
-  const handleDeleteComment = async (commentId: string) => {
+  const handleDeleteComment = async (commentId: string, authorId: string) => {
+    if (!currentUserId) {
+      showError("You must be logged in to delete a comment.");
+      return;
+    }
+
+    // Allow admin to delete any comment, or author to delete their own
+    const canDelete = userRole === "admin" || currentUserId === authorId;
+
+    if (!canDelete) {
+      showError("You do not have permission to delete this comment.");
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from("comments")
         .delete()
-        .eq("id", commentId)
-        .eq("author_id", currentUserId); // Ensure only author can delete
+        .eq("id", commentId); // RLS will handle permission check
 
       if (error) {
         showError("Failed to delete comment: " + error.message);
@@ -168,7 +188,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
                   <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(comment.created_at).toLocaleString()}</p>
                   <p className="text-gray-800 dark:text-gray-200 mt-1">{comment.comment_text}</p>
                 </div>
-                {currentUserId === comment.author_id && (
+                {(userRole === "admin" || currentUserId === comment.author_id) && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 ml-2">
@@ -184,7 +204,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeleteComment(comment.id)} className="bg-red-600 hover:bg-red-700">
+                        <AlertDialogAction onClick={() => handleDeleteComment(comment.id, comment.author_id)} className="bg-red-600 hover:bg-red-700">
                           Yes, delete comment
                         </AlertDialogAction>
                       </AlertDialogFooter>
