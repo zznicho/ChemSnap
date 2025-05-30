@@ -195,7 +195,7 @@ const SocialFeed = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
       <div className="w-full max-w-2xl">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100 font-chemistry">ChemSnap! Social Feed</h1>
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">ChemSnap! Social Feed</h1>
         <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
           Share your chemistry journey, ask questions, and connect with other students and teachers!
         </p>
@@ -204,7 +204,7 @@ const SocialFeed = () => {
           <CreatePostForm onPostCreated={fetchPosts} />
         </div>
 
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-chemistry">Recent Posts</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Recent Posts</h2>
         {loading ? (
           <p className="text-center text-gray-600 dark:text-gray-400">Loading posts...</p>
         ) : (
