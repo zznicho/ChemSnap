@@ -1,13 +1,24 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { showError } from "@/utils/toast";
+import { showError, showSuccess } from "@/utils/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import CreateHSCResourceForm from "@/components/CreateHSCResourceForm";
-import { PlusCircle, ExternalLink, Trash2 } from "lucide-react";
+import { PlusCircle, ExternalLink, Trash2, Edit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface HSCResource {
   id: string;
@@ -31,6 +42,8 @@ const AdminResourcesPage = () => {
   const [resources, setResources] = useState<HSCResource[]>([]);
   const [loadingResources, setLoadingResources] = useState(true);
   const [isCreateResourceDialogOpen, setIsCreateResourceDialogOpen] = useState(false);
+  const [isEditResourceDialogOpen, setIsEditResourceDialogOpen] = useState(false); // New state for edit dialog
+  const [selectedResource, setSelectedResource] = useState<HSCResource | null>(null); // State to hold resource being edited
 
   useEffect(() => {
     const checkUserRole = async () => {
@@ -112,6 +125,11 @@ const AdminResourcesPage = () => {
     }
   };
 
+  const handleEditResource = (resource: HSCResource) => {
+    setSelectedResource(resource);
+    setIsEditResourceDialogOpen(true);
+  };
+
   if (loadingRole) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
@@ -140,10 +158,10 @@ const AdminResourcesPage = () => {
               <DialogHeader>
                 <DialogTitle>Create New HSC Resource</DialogTitle>
               </DialogHeader>
-              <CreateHSCResourceForm onResourceCreated={() => {
+              <CreateHSCResourceForm onResourceSaved={() => {
                 setIsCreateResourceDialogOpen(false);
                 fetchAllResources(); // Refresh resources after creation
-              }} />
+              }} onClose={() => setIsCreateResourceDialogOpen(false)} />
             </DialogContent>
           </Dialog>
         </div>
@@ -158,18 +176,46 @@ const AdminResourcesPage = () => {
             ) : (
               resources.map((resource) => (
                 <Card key={resource.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{resource.title}</CardTitle>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      <Badge variant="secondary">{resource.subject}</Badge>
-                      <Badge variant="secondary">{resource.year_level}</Badge>
-                      <Badge variant="secondary">{resource.resource_type}</Badge>
-                      {resource.difficulty_level && <Badge variant="secondary">{resource.difficulty_level}</Badge>}
-                      {resource.is_free ? <Badge className="bg-green-500">Free</Badge> : <Badge className="bg-yellow-500">Paid</Badge>}
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <div>
+                      <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{resource.title}</CardTitle>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <Badge variant="secondary">{resource.subject}</Badge>
+                        <Badge variant="secondary">{resource.year_level}</Badge>
+                        <Badge variant="secondary">{resource.resource_type}</Badge>
+                        {resource.difficulty_level && <Badge variant="secondary">{resource.difficulty_level}</Badge>}
+                        {resource.is_free ? <Badge className="bg-green-500">Free</Badge> : <Badge className="bg-yellow-500">Paid</Badge>}
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button variant="ghost" size="icon" onClick={() => handleEditResource(resource)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete this resource.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteResource(resource.id)} className="bg-red-600 hover:bg-red-700">
+                              Yes, delete resource
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    {resource.content && <p className="text-gray-800 dark:text-gray-200">{resource.content}</p>}
+                    {resource.content && <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: resource.content }} />}
                     {resource.syllabus_point && (
                       <p className="text-sm text-gray-600 dark:text-gray-400">Syllabus Point: {resource.syllabus_point}</p>
                     )}
@@ -184,11 +230,6 @@ const AdminResourcesPage = () => {
                       </a>
                     )}
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Added: {new Date(resource.created_at).toLocaleDateString()}</p>
-                    <div className="flex justify-end">
-                      <Button variant="destructive" size="sm" onClick={() => handleDeleteResource(resource.id)}>
-                        <Trash2 className="h-4 w-4 mr-2" /> Delete
-                      </Button>
-                    </div>
                   </CardContent>
                 </Card>
               ))
@@ -196,6 +237,24 @@ const AdminResourcesPage = () => {
           </div>
         )}
       </div>
+
+      {selectedResource && (
+        <Dialog open={isEditResourceDialogOpen} onOpenChange={setIsEditResourceDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Edit HSC Resource</DialogTitle>
+            </DialogHeader>
+            <CreateHSCResourceForm
+              initialData={selectedResource}
+              onResourceSaved={() => {
+                setIsEditResourceDialogOpen(false);
+                fetchAllResources(); // Refresh resources after edit
+              }}
+              onClose={() => setIsEditResourceDialogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
