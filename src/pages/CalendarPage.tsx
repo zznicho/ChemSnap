@@ -156,11 +156,12 @@ const CalendarPage = () => {
             due_date,
             total_points,
             file_url,
-            classes (
+            classes!assignments_class_id_fkey (
               name
             )
           `)
           .in("class_id", classIds)
+          .gte("due_date", new Date().toISOString()) // Only future assignments
           .order("due_date", { ascending: true });
 
         if (classAssignmentsError) {
@@ -208,11 +209,12 @@ const CalendarPage = () => {
           due_date,
           total_points,
           file_url,
-          classes (
+          classes!assignments_class_id_fkey (
             name
           )
         `)
         .eq("teacher_id", currentUserId)
+        .gte("due_date", new Date().toISOString()) // Only future assignments
         .order("due_date", { ascending: true });
 
       if (teacherAssignmentsError) {
