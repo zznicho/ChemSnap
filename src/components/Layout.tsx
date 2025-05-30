@@ -64,7 +64,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="flex flex-col min-h-screen">
       {/* Top Bar with Logo and Profile Button */}
       <header className="w-full bg-white dark:bg-gray-800 shadow-sm p-4 flex justify-between items-center sticky top-0 z-10">
-        <div className="text-2xl font-extrabold text-primary dark:text-primary-foreground" style={{ fontFamily: 'Chemistry, sans-serif' }}>
+        <div className="text-2xl font-extrabold text-primary dark:text-primary-foreground font-chemistry">
           ChemSnap!
         </div>
         <div className="flex items-center space-x-2">
