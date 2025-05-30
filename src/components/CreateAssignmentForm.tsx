@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DialogDescription } from "@/components/ui/dialog"; // Import DialogDescription
 
 const formSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters." }).max(100, { message: "Title cannot exceed 100 characters." }),
@@ -31,6 +32,7 @@ const formSchema = z.object({
 interface CreateAssignmentFormProps {
   onAssignmentCreated: () => void;
   onClose: () => void; // Added onClose prop
+  classId?: string; // Make classId optional for general use, but required for specific class context
 }
 
 interface Class {
@@ -38,7 +40,7 @@ interface Class {
   name: string;
 }
 
-const CreateAssignmentForm = ({ onAssignmentCreated, onClose }: CreateAssignmentFormProps) => {
+const CreateAssignmentForm = ({ onAssignmentCreated, onClose, classId: propClassId }: CreateAssignmentFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -54,9 +56,16 @@ const CreateAssignmentForm = ({ onAssignmentCreated, onClose }: CreateAssignment
       due_date: undefined,
       total_points: 100,
       file_url: "",
-      class_id: "", // Default value for class_id
+      class_id: propClassId || "", // Use propClassId if provided, otherwise default to empty
     },
   });
+
+  useEffect(() => {
+    // Set class_id from prop if it changes or is initially provided
+    if (propClassId) {
+      form.setValue("class_id", propClassId);
+    }
+  }, [propClassId, form]);
 
   useEffect(() => {
     const fetchUserAndClasses = async () => {
@@ -148,6 +157,9 @@ const CreateAssignmentForm = ({ onAssignmentCreated, onClose }: CreateAssignment
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New Assignment</h2>
+        <DialogDescription>
+          Fill out the form to create a new assignment for your class.
+        </DialogDescription>
         {userRole === "teacher" && (
           <FormField
             control={form.control}
@@ -162,12 +174,12 @@ const CreateAssignmentForm = ({ onAssignmentCreated, onClose }: CreateAssignment
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {teacherClasses.length === 0 ? (
-                      <SelectItem value="" disabled>No classes available</SelectItem>
-                    ) : (
-                      teacherClasses.map((cls) => (
-                        <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
-                      ))
+                    {teacherClasses.map((cls) => (
+                      <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
+                    ))}
+                    {teacherClasses.length === 0 && (
+                      // Removed SelectItem with empty value
+                      <SelectItem value="no-classes-available" disabled>No classes available</SelectItem>
                     )}
                   </SelectContent>
                 </Select>

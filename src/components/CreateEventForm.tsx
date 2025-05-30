@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Popover, PopoverContent, PopoverTrigger } => "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { CalendarIcon, Clock } from "lucide-react";
@@ -153,7 +153,7 @@ const CreateEventForm = ({ onEventCreated, onClose }: CreateEventFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New Event</h2>
-        <DialogDescription className="sr-only">
+        <DialogDescription>
           Fill out the form to create a new calendar event.
         </DialogDescription>
         <FormField
