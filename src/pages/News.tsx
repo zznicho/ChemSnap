@@ -4,8 +4,8 @@ import { showError, showSuccess } from "@/utils/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import CreateNewsArticleForm from "@/components/CreateNewsArticleForm";
-import { PlusCircle, ExternalLink, Trash2 } from "lucide-react";
+import NewsArticleForm from "@/components/NewsArticleForm"; // Updated import
+import { PlusCircle, ExternalLink, Trash2, Edit } from "lucide-react"; // Added Edit icon
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +35,8 @@ const News = () => {
   const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateArticleDialogOpen, setIsCreateArticleDialogOpen] = useState(false);
+  const [isEditArticleDialogOpen, setIsEditArticleDialogOpen] = useState(false); // New state for edit dialog
+  const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null); // State to hold article being edited
   const [userRole, setUserRole] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
@@ -111,6 +113,11 @@ const News = () => {
     }
   };
 
+  const handleEditClick = (article: NewsArticle) => {
+    setSelectedArticle(article);
+    setIsEditArticleDialogOpen(true);
+  };
+
   const canManageContent = userRole === "admin" || userRole === "teacher";
 
   return (
@@ -133,7 +140,7 @@ const News = () => {
                 <DialogHeader>
                   <DialogTitle>Create New News Article</DialogTitle>
                 </DialogHeader>
-                <CreateNewsArticleForm onArticleCreated={fetchNewsArticles} onClose={() => setIsCreateArticleDialogOpen(false)} />
+                <NewsArticleForm onArticleSaved={fetchNewsArticles} onClose={() => setIsCreateArticleDialogOpen(false)} />
               </DialogContent>
             </Dialog>
           </div>
@@ -156,29 +163,36 @@ const News = () => {
                         By {article.profiles?.full_name || "Unknown"} on {new Date(article.created_at).toLocaleDateString()}
                       </p>
                     </div>
-                    {(userRole === "admin" || currentUserId === article.author_id) && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete this news article.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteArticle(article.id)} className="bg-red-600 hover:bg-red-700">
-                              Yes, delete article
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    )}
+                    <div className="flex space-x-2">
+                      {(userRole === "admin" || currentUserId === article.author_id) && (
+                        <Button variant="ghost" size="icon" onClick={() => handleEditClick(article)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {(userRole === "admin" || currentUserId === article.author_id) && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete this news article.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteArticle(article.id)} className="bg-red-600 hover:bg-red-700">
+                                Yes, delete article
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {article.content && <p className="text-gray-800 dark:text-gray-200">{article.content}</p>}
@@ -202,6 +216,21 @@ const News = () => {
           </div>
         )}
       </div>
+
+      {selectedArticle && (
+        <Dialog open={isEditArticleDialogOpen} onOpenChange={setIsEditArticleDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Edit News Article</DialogTitle>
+            </DialogHeader>
+            <NewsArticleForm
+              initialData={selectedArticle}
+              onArticleSaved={fetchNewsArticles}
+              onClose={() => setIsEditArticleDialogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
