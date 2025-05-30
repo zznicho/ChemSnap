@@ -18,6 +18,9 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        chemistry: ['ChemistryFont', 'sans-serif'], // Define the new font family
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

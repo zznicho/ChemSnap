@@ -419,3 +419,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+@font-face {
+  font-family: 'ChemistryFont';
+  src: url('/fonts/ChemistryFont.ttf') format('truetype'); /* Assuming .ttf format and placed in public/fonts */
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
