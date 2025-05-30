@@ -155,7 +155,7 @@ const CreateAssignmentForm = ({ onAssignmentCreated, onClose }: CreateAssignment
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Assign to Class</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || ""}> {/* Ensure value is always a string */}
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a class" />
