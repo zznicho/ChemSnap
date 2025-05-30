@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, Award, BookOpen, Users, FlaskConical, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import NotificationSettingsDialog from "@/components/NotificationSettingsDialog"; // Import the new component
 
 interface UserProfile {
   full_name: string;
@@ -12,6 +13,8 @@ interface UserProfile {
   role: string;
   current_streak: number;
   last_activity_date: string | null;
+  notification_settings: Record<string, boolean>; // Add notification settings
+  notification_prompt_shown: boolean; // Add prompt shown status
 }
 
 interface QuizResult {
@@ -57,6 +60,8 @@ const Home = () => {
   const [teacherAssignments, setTeacherAssignments] = useState<Assignment[]>([]);
   const [enrolledClasses, setEnrolledClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false); // State for dialog visibility
+  const [initialNotificationSettings, setInitialNotificationSettings] = useState<Record<string, boolean>>({}); // State for initial settings
 
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
@@ -68,10 +73,10 @@ const Home = () => {
       return;
     }
 
-    // Fetch user profile
+    // Fetch user profile including notification settings
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("full_name, profile_picture_url, role, current_streak, last_activity_date")
+      .select("full_name, profile_picture_url, role, current_streak, last_activity_date, notification_settings, notification_prompt_shown")
       .eq("id", user.id)
       .single();
 
@@ -82,6 +87,12 @@ const Home = () => {
       return;
     }
     setUserProfile(profile as UserProfile);
+
+    // Check if notification prompt needs to be shown
+    if (!profile.notification_prompt_shown) {
+      setShowNotificationPrompt(true);
+      setInitialNotificationSettings(profile.notification_settings || {});
+    }
 
     if (profile.role === "student") {
       // Fetch recent quiz results for student
@@ -417,6 +428,18 @@ const Home = () => {
           </Card>
         )}
       </div>
+
+      {showNotificationPrompt && (
+        <NotificationSettingsDialog
+          isOpen={showNotificationPrompt}
+          onClose={() => setShowNotificationPrompt(false)}
+          onSettingsSaved={() => {
+            setShowNotificationPrompt(false);
+            fetchDashboardData(); // Re-fetch to ensure prompt status is updated
+          }}
+          initialSettings={initialNotificationSettings}
+        />
+      )}
     </div>
   );
 };
