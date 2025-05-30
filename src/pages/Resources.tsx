@@ -153,7 +153,7 @@ const Resources = () => {
   const renderGeneralResourceCard = (resource: GeneralResource) => (
     <Card key={resource.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">{resource.title}</CardTitle>
+        <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 font-chemistry">{resource.title}</CardTitle>
         {canManageResources && (
           <div className="flex space-x-2">
             <Button variant="ghost" size="icon" onClick={() => handleEditGeneralResource(resource)}>
@@ -210,7 +210,7 @@ const Resources = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
       <div className="w-full max-w-3xl">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">Chemistry Resources Hub</h1>
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100 font-chemistry">Chemistry Resources Hub</h1>
         <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
           Your comprehensive guide for chemistry studies, from fundamental concepts to career paths.
         </p>
@@ -245,32 +245,32 @@ const Resources = () => {
           <TabsContent value="general" className="mt-4 space-y-8">
             <PeriodicTable />
 
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Additional Resources</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-chemistry">Additional Resources</h2>
             {loadingGeneralResources ? (
               <p className="text-center text-gray-600 dark:text-gray-400">Loading general resources...</p>
             ) : (
               <div className="space-y-6">
                 {pastPapersTextbooks.length > 0 && (
                   <>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Past Papers & Textbooks</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 font-chemistry">Past Papers & Textbooks</h3>
                     {pastPapersTextbooks.map(renderGeneralResourceCard)}
                   </>
                 )}
                 {universityInfo.length > 0 && (
                   <>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">University Information</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 font-chemistry">University Information</h3>
                     {universityInfo.map(renderGeneralResourceCard)}
                   </>
                 )}
                 {careerPaths.length > 0 && (
                   <>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Fields That Require Chemistry</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 font-chemistry">Fields That Require Chemistry</h3>
                     {careerPaths.map(renderGeneralResourceCard)}
                   </>
                 )}
                 {generalResources.filter(r => !['past_papers', 'university_info', 'career_paths'].includes(r.type)).length > 0 && (
                   <>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Other General Resources</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 font-chemistry">Other General Resources</h3>
                     {generalResources.filter(r => !['past_papers', 'university_info', 'career_paths'].includes(r.type)).map(renderGeneralResourceCard)}
                   </>
                 )}
@@ -282,7 +282,7 @@ const Resources = () => {
           </TabsContent>
 
           <TabsContent value="hsc" className="mt-4">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Free HSC Resources</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-chemistry">Free HSC Resources</h2>
             <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
               Explore a collection of free resources to help with your HSC studies.
             </p>
@@ -297,12 +297,13 @@ const Resources = () => {
                   hscResources.map((resource) => (
                     <Card key={resource.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
                       <CardHeader>
-                        <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{resource.title}</CardTitle>
+                        <CardTitle className="text-xl text-gray-900 dark:text-gray-100 font-chemistry">{resource.title}</CardTitle>
                         <div className="flex flex-wrap gap-2 mt-2">
                           <Badge variant="secondary">{resource.subject}</Badge>
                           <Badge variant="secondary">{resource.year_level}</Badge>
                           <Badge variant="secondary">{resource.resource_type}</Badge>
                           {resource.difficulty_level && <Badge variant="secondary">{resource.difficulty_level}</Badge>}
+                          {resource.is_free ? <Badge className="bg-green-500">Free</Badge> : <Badge className="bg-yellow-500">Paid</Badge>}
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-2">
