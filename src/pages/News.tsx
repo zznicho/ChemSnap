@@ -74,7 +74,7 @@ const News = () => {
         file_url,
         created_at,
         author_id,
-        profiles (
+        profiles!left (
           full_name
         )
       `)
@@ -82,7 +82,7 @@ const News = () => {
 
     if (error) {
       showError("Failed to fetch news articles: " + error.message);
-      console.error("Error fetching news articles:", error);
+      console.error("Supabase error fetching news articles:", error); // Enhanced logging
     } else {
       setNewsArticles(data as NewsArticle[]);
     }
