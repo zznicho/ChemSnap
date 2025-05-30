@@ -20,7 +20,7 @@ const signupFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }), // Email is now required
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters." }) // Changed from 7 to 6
+    .min(8, { message: "Password must be at least 8 characters." }) // Changed from 7 to 8
     .regex(/[A-Z]|\W/, { message: "Password must contain at least one capital letter or special character." }),
   confirm_password: z.string(),
   role: z.enum(["student", "teacher", "personal"], { message: "Please select a role." }),
@@ -58,7 +58,7 @@ const Signup = () => {
 
   const selectedRole = form.watch("role");
 
-  const hasMinLength = passwordInput.length >= 6; // Changed from 7 to 6
+  const hasMinLength = passwordInput.length >= 8; // Changed from 7 to 8
   const hasCapitalOrSpecial = /[A-Z]|\W/.test(passwordInput);
 
   useEffect(() => {
@@ -173,7 +173,7 @@ const Signup = () => {
                   <div className="text-sm mt-2 space-y-1">
                     <p className={`flex items-center ${hasMinLength ? "text-green-500" : "text-gray-500"}`}>
                       <Check className={`h-4 w-4 mr-2 ${hasMinLength ? "text-green-500" : "text-gray-400"}`} />
-                      At least 6 characters {/* Updated message */}
+                      At least 8 characters {/* Updated message */}
                     </p>
                     <p className={`flex items-center ${hasCapitalOrSpecial ? "text-green-500" : "text-gray-500"}`}>
                       <Check className={`h-4 w-4 mr-2 ${hasCapitalOrSpecial ? "text-green-500" : "text-gray-400"}`} />
