@@ -26,7 +26,7 @@ interface EnrolledClass {
       due_date: string | null;
       total_points: number;
     }[];
-    student_count: number;
+    // student_count is no longer directly available via this query
   };
 }
 
@@ -101,8 +101,8 @@ const MyClasses = () => {
             title,
             due_date,
             total_points
-          ),
-          class_enrollments!class_enrollments_class_id_fkey(count)
+          )
+          // Removed class_enrollments!class_enrollments_class_id_fkey(count) to resolve embedding error
         )
       `)
       .order("joined_at", { ascending: false });
@@ -118,14 +118,8 @@ const MyClasses = () => {
       showError("Failed to fetch enrolled classes: " + error.message);
       console.error("Error fetching enrolled classes:", error);
     } else {
-      const enrolledClassesWithCounts = data.map(enrollment => ({
-        ...enrollment,
-        classes: {
-          ...enrollment.classes,
-          student_count: enrollment.classes.class_enrollments ? enrollment.classes.class_enrollments[0].count : 0,
-        }
-      }));
-      setEnrolledClasses(enrolledClassesWithCounts as EnrolledClass[]);
+      // student_count is no longer directly available here, so we remove the mapping
+      setEnrolledClasses(data as EnrolledClass[]);
     }
     setLoadingClasses(false);
   }, [userRole]); // Depend on userRole to refetch if it changes
@@ -181,7 +175,7 @@ const MyClasses = () => {
                   <CardContent className="space-y-2">
                     {enrollment.classes.description && <p className="text-gray-800 dark:text-gray-200">{enrollment.classes.description}</p>}
                     <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                      <span className="flex items-center"><Users className="h-4 w-4 mr-1" /> {enrollment.classes.student_count} Students</span>
+                      {/* Removed student count display as it's no longer directly available here */}
                       <span className="flex items-center"><BookOpen className="h-4 w-4 mr-1" /> {enrollment.classes.assignments.length} Assignments</span>
                     </div>
 
