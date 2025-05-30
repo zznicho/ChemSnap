@@ -102,14 +102,14 @@ const ClassManagement = () => {
         description,
         class_code,
         created_at,
-        assignments!class_id_fkey (
+        assignments (
           id,
           title,
           due_date,
           total_points,
           file_url
         ),
-        class_enrollments!class_id_fkey(count)
+        class_enrollments(count)
       `)
       .order("created_at", { ascending: false });
 

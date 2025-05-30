@@ -96,7 +96,7 @@ const MyClasses = () => {
           profiles (
             full_name
           ),
-          assignments!class_id_fkey (
+          assignments (
             id,
             title,
             due_date,
