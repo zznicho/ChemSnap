@@ -230,7 +230,7 @@ const Resources = () => {
                 <DialogHeader>
                   <DialogTitle>Create New General Resource</DialogTitle>
                 </DialogHeader>
-                <CreateGeneralResourceForm onResourceSaved={fetchGeneralResources} onClose={() => setIsCreateGeneralResourceDialogOpen(false)} />
+                <CreateGeneralResourceForm onResourceSaved={fetchGeneralResources} onClose={() => setIsCreateGeneralResourceDialogOpen(false)} userRole={userRole} />
               </DialogContent>
             </Dialog>
           </div>
@@ -342,6 +342,7 @@ const Resources = () => {
               initialData={selectedGeneralResource}
               onResourceSaved={fetchGeneralResources}
               onClose={() => setIsEditGeneralResourceDialogOpen(false)}
+              userRole={userRole}
             />
           </DialogContent>
         </Dialog>

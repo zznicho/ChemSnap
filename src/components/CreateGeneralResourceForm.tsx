@@ -35,9 +35,10 @@ interface CreateGeneralResourceFormProps {
   };
   onResourceSaved: () => void;
   onClose: () => void;
+  userRole: string | null; // Add userRole prop
 }
 
-const CreateGeneralResourceForm = ({ initialData, onResourceSaved, onClose }: CreateGeneralResourceFormProps) => {
+const CreateGeneralResourceForm = ({ initialData, onResourceSaved, onClose, userRole }: CreateGeneralResourceFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const { uploadFile, loading: uploadingFile, error: uploadError } = useFileUpload("public_files");
@@ -71,6 +72,11 @@ const CreateGeneralResourceForm = ({ initialData, onResourceSaved, onClose }: Cr
 
   const onSubmit = async (values: z.infer<typeof generalResourceFormSchema>) => {
     setIsSubmitting(true);
+    if (userRole !== "admin") {
+      showError("Access Denied: Only administrators can create or edit general resources.");
+      setIsSubmitting(false);
+      return;
+    }
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
 
@@ -138,7 +144,7 @@ const CreateGeneralResourceForm = ({ initialData, onResourceSaved, onClose }: Cr
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New General Resource</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{initialData ? "Edit General Resource" : "Create New General Resource"}</h2>
         <div className="max-h-[70vh] overflow-y-auto pr-2 space-y-4"> {/* Added scrollable div */}
           <FormField
             control={form.control}
