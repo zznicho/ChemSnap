@@ -186,7 +186,8 @@ const CreateHSCResourceForm = ({ onResourceCreated }: CreateHSCResourceFormProps
                   <SelectItem value="worksheet">Worksheet</SelectItem>
                   <SelectItem value="video">Video</SelectItem>
                   <SelectItem value="article">Article</SelectItem>
-                  <SelectItem value="quiz">Quiz</SelectItem> {/* Added 'quiz' */}
+                  <SelectItem value="quiz">Quiz</SelectItem>
+                  <SelectItem value="link">Link</SelectItem> {/* Added 'link' */}
                 </SelectContent>
               </Select>
               <FormMessage />
