@@ -30,7 +30,7 @@ interface Comment {
   comment_text: string;
   created_at: string;
   author_id: string;
-  profiles: Profile;
+  author_profile: Profile; // Changed from 'profiles' to 'author_profile'
 }
 
 const commentFormSchema = z.object({
@@ -86,7 +86,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
         comment_text,
         created_at,
         author_id,
-        profiles!comments_author_id_fkey (
+        author_profile:profiles!comments_author_id_fkey (
           full_name,
           profile_picture_url
         )
@@ -186,12 +186,12 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
             comments.map((comment) => (
               <div key={comment.id} className="flex items-start space-x-3 bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
                 <img
-                  src={comment.profiles?.profile_picture_url || `https://api.dicebear.com/7.x/initials/svg?seed=${comment.profiles?.full_name || 'User'}`}
-                  alt={comment.profiles?.full_name || "User"}
+                  src={comment.author_profile?.profile_picture_url || `https://api.dicebear.com/7.x/initials/svg?seed=${comment.author_profile?.full_name || 'User'}`}
+                  alt={comment.author_profile?.full_name || "User"}
                   className="w-8 h-8 rounded-full object-cover"
                 />
                 <div className="flex-grow">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{comment.profiles?.full_name || "Unknown User"}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{comment.author_profile?.full_name || "Unknown User"}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(comment.created_at).toLocaleString()}</p>
                   <p className="text-gray-800 dark:text-gray-200 mt-1">{comment.comment_text}</p>
                 </div>
