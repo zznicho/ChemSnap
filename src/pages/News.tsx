@@ -123,7 +123,7 @@ const News = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
       <div className="w-full max-w-3xl">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100 font-chemistry">Science News</h1>
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">Science News</h1>
         <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
           Stay updated with the latest in science and chemistry!
         </p>
@@ -146,7 +146,7 @@ const News = () => {
           </div>
         )}
 
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-chemistry">Latest Articles</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Latest Articles</h2>
         {loading ? (
           <p className="text-center text-gray-600 dark:text-gray-400">Loading news articles...</p>
         ) : (
@@ -158,7 +158,7 @@ const News = () => {
                 <Card key={article.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
                   <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                      <CardTitle className="text-xl text-gray-900 dark:text-gray-100 font-chemistry">{article.title}</CardTitle>
+                      <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{article.title}</CardTitle>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         By {article.profiles?.full_name || "Unknown"} on {new Date(article.created_at).toLocaleDateString()}
                       </p>
