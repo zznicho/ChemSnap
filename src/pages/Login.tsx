@@ -130,7 +130,7 @@ const Login = () => {
     setIsSendingResetEmail(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-        redirectTo: `${window.location.origin}/login?reset=true`,
+        redirectTo: `${window.location.origin}/`, // Changed redirect to root
       });
 
       if (error) {
