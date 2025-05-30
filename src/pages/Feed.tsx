@@ -251,7 +251,7 @@ const SocialFeed = () => {
                     )}
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {post.content_text && <p className="text-gray-800 dark:text-gray-200">{post.content_text}</p>}
+                    {post.content_text && <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: post.content_text }} />}
                     {post.content_image_url && (
                       <img src={post.content_image_url} alt="Post image" className="w-full h-auto rounded-md object-cover max-h-96" />
                     )}

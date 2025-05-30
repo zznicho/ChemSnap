@@ -195,7 +195,7 @@ const News = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {article.content && <p className="text-gray-800 dark:text-gray-200">{article.content}</p>}
+                    {article.content && <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: article.content }} />}
                     {article.image_url && (
                       <img src={article.image_url} alt={article.title} className="w-full h-auto rounded-md object-cover max-h-96" />
                     )}
