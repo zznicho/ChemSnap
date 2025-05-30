@@ -184,7 +184,7 @@ const Resources = () => {
         )}
       </CardHeader>
       <CardContent className="space-y-2">
-        {resource.content && <p className="text-gray-800 dark:text-gray-200">{resource.content}</p>}
+        {resource.content && <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: resource.content }} />}
         {resource.image_url && (
           <img src={resource.image_url} alt={resource.title} className="w-full h-auto rounded-md object-cover max-h-96" />
         )}
@@ -306,7 +306,7 @@ const Resources = () => {
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-2">
-                        {resource.content && <p className="text-gray-800 dark:text-gray-200">{resource.content}</p>}
+                        {resource.content && <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: resource.content }} />}
                         {resource.syllabus_point && (
                           <p className="text-sm text-gray-600 dark:text-gray-400">Syllabus Point: {resource.syllabus_point}</p>
                         )}
