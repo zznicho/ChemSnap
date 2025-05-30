@@ -102,7 +102,7 @@ const MyClasses = () => {
             due_date,
             total_points
           ),
-          class_enrollments(count)
+          class_enrollments!class_enrollments_class_id_fkey(count)
         )
       `)
       .order("joined_at", { ascending: false });
@@ -122,7 +122,7 @@ const MyClasses = () => {
         ...enrollment,
         classes: {
           ...enrollment.classes,
-          student_count: enrollment.classes.class_enrollments ? enrollment.classes.class_enrollments.length : 0,
+          student_count: enrollment.classes.class_enrollments ? enrollment.classes.class_enrollments[0].count : 0,
         }
       }));
       setEnrolledClasses(enrolledClassesWithCounts as EnrolledClass[]);

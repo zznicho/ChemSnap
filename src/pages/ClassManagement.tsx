@@ -109,7 +109,7 @@ const ClassManagement = () => {
           total_points,
           file_url
         ),
-        class_enrollments(count)
+        class_enrollments!class_enrollments_class_id_fkey(count)
       `)
       .order("created_at", { ascending: false });
 
