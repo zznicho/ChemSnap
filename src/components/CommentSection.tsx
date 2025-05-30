@@ -48,6 +48,13 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
 
+  const form = useForm<z.infer<typeof commentFormSchema>>({
+    resolver: zodResolver(commentFormSchema),
+    defaultValues: {
+      comment_text: "",
+    },
+  });
+
   useEffect(() => {
     const fetchUserAndRole = async () => {
       const { data: { user } } = await supabase.auth.getUser();
