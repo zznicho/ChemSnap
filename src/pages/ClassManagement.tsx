@@ -102,7 +102,7 @@ const ClassManagement = () => {
         description,
         class_code,
         created_at,
-        assignments (
+        assignments!assignments_class_id_fkey (
           id,
           title,
           due_date,
