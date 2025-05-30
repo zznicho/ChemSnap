@@ -164,7 +164,7 @@ const UserManagement = () => {
 
       if (!response.ok) {
         showError("Failed to delete user: " + (result.error || "Unknown error"));
-        console.error("Account deletion error:", result);
+        console.error("Error deleting user:", result);
       } else {
         showSuccess("User deleted successfully!");
         fetchUsers(); // Refresh the list
@@ -187,131 +187,101 @@ const UserManagement = () => {
     return null; // Should have been redirected by now
   }
 
-  const groupedUsers: { [key: string]: UserProfile[] } = {
-    admin: [],
-    teacher: [],
-    student: [],
-    personal: [],
-    other: [], // For any unexpected roles
-  };
-
-  users.forEach(user => {
-    if (groupedUsers[user.role]) {
-      groupedUsers[user.role].push(user);
-    } else {
-      groupedUsers.other.push(user);
-    }
-  });
-
-  const roleOrder = ["admin", "teacher", "student", "personal", "other"];
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
       <div className="w-full max-w-3xl">
         <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">Admin: User Management</h1>
 
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">All Users</h2>
         {loadingUsers ? (
           <p className="text-center text-gray-600 dark:text-gray-400">Loading users...</p>
         ) : (
-          <div className="space-y-8">
-            {roleOrder.map(role => {
-              const usersInRole = groupedUsers[role];
-              if (usersInRole.length === 0) return null;
-
-              return (
-                <div key={role}>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 capitalize">
-                    {role === "admin" ? "Administrators" : role === "teacher" ? "Teachers" : role === "student" ? "Students" : role === "personal" ? "Personal Users" : "Other Users"} ({usersInRole.length})
-                  </h2>
-                  <div className="space-y-4">
-                    {usersInRole.map((user) => (
-                      <Card key={user.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                          <div className="flex items-center space-x-3">
-                            <img
-                              src={user.profile_picture_url || `https://api.dicebear.com/7.x/initials/svg?seed=${user.full_name}`}
-                              alt={user.full_name}
-                              className="w-10 h-10 rounded-full object-cover"
-                            />
-                            <div>
-                              <CardTitle className="text-lg text-gray-900 dark:text-gray-100">{user.full_name}</CardTitle>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Badge variant="secondary" className="capitalize">{user.role}</Badge>
-                            {user.is_blocked ? (
-                              <Badge className="bg-red-500 text-white flex items-center">
-                                <ShieldAlert className="h-4 w-4 mr-1" /> Blocked
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-green-500 text-white flex items-center">
-                                <ShieldCheck className="h-4 w-4 mr-1" /> Active
-                              </Badge>
-                            )}
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                            <Select onValueChange={(value) => handleChangeRole(user.id, value)} value={user.role} disabled={user.id === currentAuthUserId}>
-                              <SelectTrigger className="w-full sm:w-[180px]">
-                                <SelectValue placeholder="Change Role" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="student">Student</SelectItem>
-                                <SelectItem value="teacher">Teacher</SelectItem>
-                                <SelectItem value="personal">Personal User</SelectItem>
-                                <SelectItem value="admin">Admin</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Button
-                              variant={user.is_blocked ? "outline" : "destructive"}
-                              onClick={() => handleToggleBlock(user.id, user.is_blocked)}
-                              className="w-full sm:w-auto"
-                              disabled={user.id === currentAuthUserId}
-                            >
-                              {user.is_blocked ? (
-                                <>
-                                  <UserCheck className="h-4 w-4 mr-2" /> Unblock
-                                </>
-                              ) : (
-                                <>
-                                  <UserX className="h-4 w-4 mr-2" /> Block
-                                </>
-                              )}
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="destructive" className="w-full sm:w-auto" disabled={user.id === currentAuthUserId}>
-                                  <Trash2 className="h-4 w-4 mr-2" /> Delete
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete the user account
-                                    and all associated data.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteUser(user.id)} className="bg-red-600 hover:bg-red-700">
-                                    Yes, delete user
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-            {users.length === 0 && (
+          <div className="space-y-4">
+            {users.length === 0 ? (
               <p className="text-center text-gray-600 dark:text-gray-400">No users found.</p>
+            ) : (
+              users.map((user) => (
+                <Card key={user.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <div className="flex items-center space-x-3">
+                      <img
+                        src={user.profile_picture_url || `https://api.dicebear.com/7.x/initials/svg?seed=${user.full_name}`}
+                        alt={user.full_name}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <CardTitle className="text-lg text-gray-900 dark:text-gray-100">{user.full_name}</CardTitle>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="secondary" className="capitalize">{user.role}</Badge>
+                      {user.is_blocked ? (
+                        <Badge className="bg-red-500 text-white flex items-center">
+                          <ShieldAlert className="h-4 w-4 mr-1" /> Blocked
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-green-500 text-white flex items-center">
+                          <ShieldCheck className="h-4 w-4 mr-1" /> Active
+                        </Badge>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <Select onValueChange={(value) => handleChangeRole(user.id, value)} value={user.role} disabled={user.id === currentAuthUserId}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                          <SelectValue placeholder="Change Role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="student">Student</SelectItem>
+                          <SelectItem value="teacher">Teacher</SelectItem>
+                          <SelectItem value="personal">Personal User</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant={user.is_blocked ? "outline" : "destructive"}
+                        onClick={() => handleToggleBlock(user.id, user.is_blocked)}
+                        className="w-full sm:w-auto"
+                        disabled={user.id === currentAuthUserId}
+                      >
+                        {user.is_blocked ? (
+                          <>
+                            <UserCheck className="h-4 w-4 mr-2" /> Unblock
+                          </>
+                        ) : (
+                          <>
+                            <UserX className="h-4 w-4 mr-2" /> Block
+                          </>
+                        )}
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" className="w-full sm:w-auto" disabled={user.id === currentAuthUserId}>
+                            <Trash2 className="h-4 w-4 mr-2" /> Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the user account
+                              and all associated data.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteUser(user.id)} className="bg-red-600 hover:bg-red-700">
+                              Yes, delete user
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
             )}
           </div>
         )}
