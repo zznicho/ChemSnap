@@ -4,11 +4,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { showError } from "@/utils/toast";
+import { showError, showSuccess } from "@/utils/toast";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Settings } from "lucide-react";
+import { ExternalLink, Settings, PlusCircle, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import CreateGeneralResourceForm from "@/components/CreateGeneralResourceForm"; // Import new form
 
 interface HSCResource {
   id: string;
@@ -25,15 +38,33 @@ interface HSCResource {
   created_at: string;
 }
 
+interface GeneralResource {
+  id: string;
+  title: string;
+  content: string | null;
+  type: string;
+  link_url: string | null;
+  image_url: string | null;
+  created_at: string;
+  author_id: string;
+}
+
 const Resources = () => {
   const navigate = useNavigate();
   const [hscResources, setHscResources] = useState<HSCResource[]>([]);
+  const [generalResources, setGeneralResources] = useState<GeneralResource[]>([]);
   const [loadingHscResources, setLoadingHscResources] = useState(true);
+  const [loadingGeneralResources, setLoadingGeneralResources] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isCreateGeneralResourceDialogOpen, setIsCreateGeneralResourceDialogOpen] = useState(false);
+  const [isEditGeneralResourceDialogOpen, setIsEditGeneralResourceDialogOpen] = useState(false);
+  const [selectedGeneralResource, setSelectedGeneralResource] = useState<GeneralResource | null>(null);
 
   useEffect(() => {
     const fetchUserRole = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
       if (user) {
         const { data: profile, error } = await supabase
           .from("profiles")
@@ -68,15 +99,114 @@ const Resources = () => {
     setLoadingHscResources(false);
   }, []);
 
+  const fetchGeneralResources = useCallback(async () => {
+    setLoadingGeneralResources(true);
+    const { data, error } = await supabase
+      .from("general_resources")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      showError("Failed to fetch general resources: " + error.message);
+      console.error("Error fetching general resources:", error);
+    } else {
+      setGeneralResources(data as GeneralResource[]);
+    }
+    setLoadingGeneralResources(false);
+  }, []);
+
   useEffect(() => {
     fetchHscResources();
-  }, [fetchHscResources]);
+    fetchGeneralResources();
+  }, [fetchHscResources, fetchGeneralResources]);
 
-  const handleManageResourcesClick = () => {
+  const handleManageHSCResourcesClick = () => {
     navigate("/admin/resources");
   };
 
+  const handleEditGeneralResource = (resource: GeneralResource) => {
+    setSelectedGeneralResource(resource);
+    setIsEditGeneralResourceDialogOpen(true);
+  };
+
+  const handleDeleteGeneralResource = async (resourceId: string) => {
+    try {
+      const { error } = await supabase
+        .from("general_resources")
+        .delete()
+        .eq("id", resourceId);
+
+      if (error) {
+        showError("Failed to delete general resource: " + error.message);
+        console.error("Error deleting general resource:", error);
+      } else {
+        showSuccess("General resource deleted successfully!");
+        fetchGeneralResources();
+      }
+    } catch (error: any) {
+      showError("An unexpected error occurred: " + error.message);
+      console.error("Unexpected error:", error);
+    }
+  };
+
   const canManageResources = userRole === "admin";
+
+  const renderGeneralResourceCard = (resource: GeneralResource) => (
+    <Card key={resource.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">{resource.title}</CardTitle>
+        {canManageResources && (
+          <div className="flex space-x-2">
+            <Button variant="ghost" size="icon" onClick={() => handleEditGeneralResource(resource)}>
+              <Edit className="h-4 w-4" />
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete this general resource.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => handleDeleteGeneralResource(resource.id)} className="bg-red-600 hover:bg-red-700">
+                    Yes, delete resource
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        )}
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {resource.content && <p className="text-gray-800 dark:text-gray-200">{resource.content}</p>}
+        {resource.image_url && (
+          <img src={resource.image_url} alt={resource.title} className="w-full h-auto rounded-md object-cover max-h-96" />
+        )}
+        {resource.link_url && (
+          <a
+            href={resource.link_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center text-blue-600 hover:underline dark:text-blue-400 text-sm mt-2"
+          >
+            View More <ExternalLink className="ml-1 h-4 w-4" />
+          </a>
+        )}
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Added: {new Date(resource.created_at).toLocaleDateString()}</p>
+      </CardContent>
+    </Card>
+  );
+
+  const pastPapersTextbooks = generalResources.filter(r => r.type === 'past_papers');
+  const universityInfo = generalResources.filter(r => r.type === 'university_info');
+  const careerPaths = generalResources.filter(r => r.type === 'career_paths');
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
@@ -87,10 +217,23 @@ const Resources = () => {
         </p>
 
         {canManageResources && (
-          <div className="mb-8">
-            <Button className="w-full" onClick={handleManageResourcesClick}>
+          <div className="mb-8 space-y-4">
+            <Button className="w-full" onClick={handleManageHSCResourcesClick}>
               <Settings className="h-4 w-4 mr-2" /> Manage HSC Resources (Admin)
             </Button>
+            <Dialog open={isCreateGeneralResourceDialogOpen} onOpenChange={setIsCreateGeneralResourceDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full" variant="secondary">
+                  <PlusCircle className="h-4 w-4 mr-2" /> Create New General Resource
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Create New General Resource</DialogTitle>
+                </DialogHeader>
+                <CreateGeneralResourceForm onResourceSaved={fetchGeneralResources} onClose={() => setIsCreateGeneralResourceDialogOpen(false)} />
+              </DialogContent>
+            </Dialog>
           </div>
         )}
 
@@ -104,54 +247,40 @@ const Resources = () => {
             <PeriodicTable />
             <FormulaSheets />
 
-            <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Past Papers & Textbooks</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-800 dark:text-gray-200 mb-2">
-                  Access a collection of past examination papers and recommended textbooks to aid your revision.
-                </p>
-                <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
-                  <li>HSC Chemistry Past Papers (Coming Soon)</li>
-                  <li>Recommended University Chemistry Textbooks (Coming Soon)</li>
-                  <li>Interactive Study Guides (Coming Soon)</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">University Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-800 dark:text-gray-200 mb-2">
-                  Find information about chemistry programs, admission requirements, and student life at various universities.
-                </p>
-                <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
-                  <li>University Course Guides (Coming Soon)</li>
-                  <li>Scholarship Opportunities (Coming Soon)</li>
-                  <li>Student Testimonials (Coming Soon)</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Fields That Require Chemistry</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-800 dark:text-gray-200 mb-2">
-                  Explore diverse career paths and industries where a strong foundation in chemistry is essential.
-                </p>
-                <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
-                  <li>Medicine & Healthcare (Coming Soon)</li>
-                  <li>Environmental Science (Coming Soon)</li>
-                  <li>Forensic Science (Coming Soon)</li>
-                  <li>Chemical Engineering (Coming Soon)</li>
-                </ul>
-              </CardContent>
-            </Card>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Additional Resources</h2>
+            {loadingGeneralResources ? (
+              <p className="text-center text-gray-600 dark:text-gray-400">Loading general resources...</p>
+            ) : (
+              <div className="space-y-6">
+                {pastPapersTextbooks.length > 0 && (
+                  <>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Past Papers & Textbooks</h3>
+                    {pastPapersTextbooks.map(renderGeneralResourceCard)}
+                  </>
+                )}
+                {universityInfo.length > 0 && (
+                  <>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">University Information</h3>
+                    {universityInfo.map(renderGeneralResourceCard)}
+                  </>
+                )}
+                {careerPaths.length > 0 && (
+                  <>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Fields That Require Chemistry</h3>
+                    {careerPaths.map(renderGeneralResourceCard)}
+                  </>
+                )}
+                {generalResources.filter(r => !['past_papers', 'university_info', 'career_paths'].includes(r.type)).length > 0 && (
+                  <>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Other General Resources</h3>
+                    {generalResources.filter(r => !['past_papers', 'university_info', 'career_paths'].includes(r.type)).map(renderGeneralResourceCard)}
+                  </>
+                )}
+                {generalResources.length === 0 && (
+                  <p className="text-center text-gray-600 dark:text-gray-400">No general resources available yet. Admins can add them!</p>
+                )}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="hsc" className="mt-4">
@@ -203,6 +332,21 @@ const Resources = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {selectedGeneralResource && (
+        <Dialog open={isEditGeneralResourceDialogOpen} onOpenChange={setIsEditGeneralResourceDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Edit General Resource</DialogTitle>
+            </DialogHeader>
+            <CreateGeneralResourceForm
+              initialData={selectedGeneralResource}
+              onResourceSaved={fetchGeneralResources}
+              onClose={() => setIsEditGeneralResourceDialogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
