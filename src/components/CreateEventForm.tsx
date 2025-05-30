@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } => "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { CalendarIcon, Clock } from "lucide-react";
@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DialogDescription } from "@/components/ui/dialog"; // Import DialogDescription
 
 const eventFormSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters." }).max(100, { message: "Title cannot exceed 100 characters." }),
@@ -31,6 +32,7 @@ const eventFormSchema = z.object({
 
 interface CreateEventFormProps {
   onEventCreated: () => void;
+  onClose: () => void; // Added onClose prop
 }
 
 interface Class {
@@ -38,7 +40,7 @@ interface Class {
   name: string;
 }
 
-const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
+const CreateEventForm = ({ onEventCreated, onClose }: CreateEventFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [teacherClasses, setTeacherClasses] = useState<Class[]>([]);
@@ -129,6 +131,7 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
           class_id: null,
         });
         onEventCreated();
+        onClose(); // Close dialog on success
       }
     } catch (error: any) {
       showError("An unexpected error occurred: " + error.message);
@@ -150,6 +153,9 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New Event</h2>
+        <DialogDescription className="sr-only">
+          Fill out the form to create a new calendar event.
+        </DialogDescription>
         <FormField
           control={form.control}
           name="title"
@@ -342,12 +348,11 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {teacherClasses.length === 0 ? (
-                      <SelectItem value="" disabled>No classes available</SelectItem>
-                    ) : (
-                      teacherClasses.map((cls) => (
-                        <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
-                      ))
+                    {teacherClasses.map((cls) => (
+                      <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
+                    ))}
+                    {teacherClasses.length === 0 && (
+                      <SelectItem value="no-classes" disabled>No classes available</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
