@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"; // Import DialogDescription
 import NewsArticleForm from "@/components/NewsArticleForm"; // Updated import
 import { PlusCircle, ExternalLink, Trash2, Edit } from "lucide-react"; // Added Edit icon
 import {
