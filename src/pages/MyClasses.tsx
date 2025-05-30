@@ -151,7 +151,7 @@ const MyClasses = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
       <div className="w-full max-w-2xl">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">My Classes</h1>
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100 font-chemistry">My Classes</h1>
 
         {userRole === "student" && ( // Only students can join classes
           <div className="mb-8">
@@ -159,7 +159,7 @@ const MyClasses = () => {
           </div>
         )}
 
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Enrolled Classes</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-chemistry">Enrolled Classes</h2>
         {loadingClasses ? (
           <p className="text-center text-gray-600 dark:text-gray-400">Loading enrolled classes...</p>
         ) : (

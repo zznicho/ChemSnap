@@ -155,7 +155,7 @@ const ClassDiscussionPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
       <div className="w-full max-w-2xl">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100 font-chemistry">
           Discussion: {className}
         </h1>
 
