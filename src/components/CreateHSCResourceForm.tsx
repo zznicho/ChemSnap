@@ -118,7 +118,7 @@ const CreateHSCResourceForm = ({ initialData, onResourceSaved, onClose }: Create
         // Update existing resource
         const { error: updateError } = await supabase
           .from("hsc_resources")
-          .update(resourceData)
+          .update({ ...resourceData, updated_at: new Date().toISOString() }) // Explicitly set updated_at
           .eq("id", initialData.id);
         error = updateError;
       } else {
