@@ -22,17 +22,31 @@ const ProtectedRoute: React.FC = () => {
       }
 
       if (session) {
-        setIsAuthenticated(true);
-        // Update user streak on authenticated access
+        // Fetch user profile to check for blocked status
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("current_streak, last_activity_date")
+          .select("role, current_streak, last_activity_date, is_blocked")
           .eq("id", session.user.id)
           .single();
 
         if (profileError) {
-          console.error("Error fetching profile for streak update:", profileError);
-        } else if (profile) {
+          console.error("Error fetching profile for auth check:", profileError);
+          showError("Failed to load user profile. Please try logging in again.");
+          await supabase.auth.signOut(); // Sign out if profile can't be fetched
+          navigate("/login");
+          return;
+        }
+
+        if (profile && profile.is_blocked) {
+          showError("Your account has been blocked. Please contact support.");
+          await supabase.auth.signOut(); // Sign out blocked user
+          navigate("/login");
+          return;
+        }
+
+        setIsAuthenticated(true);
+        // Update user streak on authenticated access (only if not blocked)
+        if (profile) {
           await updateUserStreak(session.user.id, profile.current_streak, profile.last_activity_date);
         }
       } else {
@@ -46,8 +60,7 @@ const ProtectedRoute: React.FC = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        setIsAuthenticated(true);
-        // Re-run streak update if session changes (e.g., after login/signup)
+        // Re-run full auth check including blocked status if session changes
         checkAuth();
       } else {
         setIsAuthenticated(false);

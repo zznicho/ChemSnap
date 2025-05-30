@@ -21,6 +21,7 @@ import QuizDetails from "./pages/QuizDetails";
 import ClassDiscussionPage from "./pages/ClassDiscussionPage";
 import MyQuizResults from "./pages/MyQuizResults";
 import AdminResourcesPage from "./pages/AdminResourcesPage";
+import UserManagement from "./pages/UserManagement"; // Import UserManagement
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -60,6 +61,7 @@ const App = () => (
               <Route path="/classes/:classId/discussions" element={<ClassDiscussionPage />} />
               <Route path="/my-quiz-results" element={<MyQuizResults />} />
               <Route path="/admin/resources" element={<AdminResourcesPage />} />
+              <Route path="/admin/users" element={<UserManagement />} /> {/* New Admin Users route */}
             </Route>
 
             {/* Catch-all for 404 */}
