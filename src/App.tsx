@@ -24,6 +24,7 @@ import AdminResourcesPage from "./pages/AdminResourcesPage";
 import UserManagement from "./pages/UserManagement"; // Import UserManagement
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ThemeProvider } from "@/components/theme-provider";
+import ResetPassword from "./pages/ResetPassword"; // Import ResetPassword
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/reset-password" element={<ResetPassword />} /> {/* New Reset Password route */}
 
             {/* Index route acts as a session gate and redirects */}
             <Route path="/" element={<Index />} />
