@@ -227,7 +227,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
       <div className="w-full max-w-3xl">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100 font-chemistry">
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">
           Welcome, {userProfile.full_name.split(' ')[0]}!
         </h1>
 
@@ -252,7 +252,7 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center font-chemistry">
+                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
                   <Award className="h-5 w-5 mr-2" /> Recent Quiz Results
                 </CardTitle>
               </CardHeader>
@@ -282,7 +282,7 @@ const Home = () => {
 
             <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center font-chemistry">
+                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
                   <CalendarDays className="h-5 w-5 mr-2" /> Upcoming Assignments
                 </CardTitle>
               </CardHeader>
@@ -315,7 +315,7 @@ const Home = () => {
 
             <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg md:col-span-2">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center font-chemistry">
+                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
                   <Users className="h-5 w-5 mr-2" /> My Enrolled Classes
                 </CardTitle>
               </CardHeader>
@@ -347,7 +347,7 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center font-chemistry">
+                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
                   <FlaskConical className="h-5 w-5 mr-2" /> Recent Quizzes Created
                 </CardTitle>
               </CardHeader>
@@ -377,7 +377,7 @@ const Home = () => {
 
             <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center font-chemistry">
+                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
                   <FileText className="h-5 w-5 mr-2" /> Upcoming Assignments
                 </CardTitle>
               </CardHeader>
@@ -413,7 +413,7 @@ const Home = () => {
         {userProfile.role === "personal" && (
           <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
             <CardHeader>
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 font-chemistry">Your Personal Dashboard</CardTitle>
+              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">Your Personal Dashboard</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 dark:text-gray-400">
