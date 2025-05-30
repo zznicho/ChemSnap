@@ -24,7 +24,7 @@ const ProtectedRoute: React.FC = () => {
       }
 
       if (session) {
-        console.log("ProtectedRoute: Session found, fetching user profile for ID:", session.user.id);
+        console.log("ProtectedRoute: Session found. User ID:", session.user.id);
         // Fetch user profile to check for blocked status
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
@@ -33,7 +33,7 @@ const ProtectedRoute: React.FC = () => {
           .single();
 
         if (profileError) {
-          console.error("ProtectedRoute: Error fetching profile for auth check:", profileError);
+          console.error("ProtectedRoute: Error fetching profile for auth check. Error details:", profileError);
           showError("Failed to load user profile. Please try logging in again.");
           await supabase.auth.signOut(); // Sign out if profile can't be fetched
           navigate("/login");
