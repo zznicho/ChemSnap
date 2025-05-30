@@ -86,7 +86,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
         comment_text,
         created_at,
         author_id,
-        author_profile:profiles!comments_author_id_fkey (
+        author_profile:profiles (
           full_name,
           profile_picture_url
         )
