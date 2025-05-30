@@ -1,5 +1,4 @@
 import PeriodicTable from "@/components/PeriodicTable";
-import FormulaSheets from "@/components/FormulaSheets";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState, useCallback } from "react";
@@ -245,7 +244,6 @@ const Resources = () => {
 
           <TabsContent value="general" className="mt-4 space-y-8">
             <PeriodicTable />
-            <FormulaSheets />
 
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Additional Resources</h2>
             {loadingGeneralResources ? (
