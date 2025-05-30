@@ -218,26 +218,26 @@ const CalendarPage = () => {
       if (teacherAssignmentsError) {
         showError("Failed to fetch teacher's assignments: " + teacherAssignmentsError.message);
         console.error("Error fetching teacher's assignments:", teacherAssignmentsError);
-      } else {
-        fetchedAssignments.push(...(teacherAssignments || []).map(a => ({ ...a, type: "assignment" as const })));
+        } else {
+          fetchedAssignments.push(...(teacherAssignments || []).map(a => ({ ...a, type: "assignment" as const })));
+        }
       }
-    }
 
-    // Combine all fetched items and sort them
-    const combinedItems: CalendarItem[] = [
-      ...fetchedEvents,
-      ...fetchedAssignments,
-    ].sort((a, b) => {
-      const dateA = a.type === "event" ? parseISO(a.start_time) : (a.due_date ? parseISO(a.due_date) : new Date(0));
-      const dateB = b.type === "event" ? parseISO(b.start_time) : (b.due_date ? parseISO(b.due_date) : new Date(0));
-      return dateA.getTime() - dateB.getTime();
-    });
+      // Combine all fetched items and sort them
+      const combinedItems: CalendarItem[] = [
+        ...fetchedEvents,
+        ...fetchedAssignments,
+      ].sort((a, b) => {
+        const dateA = a.type === "event" ? parseISO(a.start_time) : (a.due_date ? parseISO(a.due_date) : new Date(0));
+        const dateB = b.type === "event" ? parseISO(b.start_time) : (b.due_date ? parseISO(b.due_date) : new Date(0));
+        return dateA.getTime() - dateB.getTime();
+      });
 
-    // Deduplicate by ID (important if an event/assignment could be fetched by multiple queries)
-    const uniqueItems = Array.from(new Map(combinedItems.map(item => [item.id, item])).values());
-    setCalendarItems(uniqueItems);
-    setLoadingItems(false);
-  }, [currentUserId, userRole]);
+      // Deduplicate by ID (important if an event/assignment could be fetched by multiple queries)
+      const uniqueItems = Array.from(new Map(combinedItems.map(item => [item.id, item])).values());
+      setCalendarItems(uniqueItems);
+      setLoadingItems(false);
+    }, [currentUserId, userRole]);
 
   useEffect(() => {
     if (currentUserId && userRole) {
@@ -267,7 +267,7 @@ const CalendarPage = () => {
           <div className="md:w-1/2 w-full">
             <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Select Date</CardTitle>
+                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 font-chemistry mb-4">Select Date</CardTitle>
               </CardHeader>
               <CardContent>
                 <Calendar
@@ -314,7 +314,7 @@ const CalendarPage = () => {
           <div className="md:w-1/2 w-full">
             <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 font-chemistry mb-4">
                   Items on {selectedDate ? format(selectedDate, "PPP") : "No date selected"}
                 </CardTitle>
               </CardHeader>
