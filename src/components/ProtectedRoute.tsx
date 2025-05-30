@@ -12,16 +12,19 @@ const ProtectedRoute: React.FC = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
+      console.log("ProtectedRoute: Checking authentication status...");
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError) {
-        console.error("Error fetching session:", sessionError);
+        console.error("ProtectedRoute: Error fetching session:", sessionError);
         showError("Failed to check session. Please try logging in again.");
         navigate("/login");
+        setLoading(false);
         return;
       }
 
       if (session) {
+        console.log("ProtectedRoute: Session found, fetching user profile for ID:", session.user.id);
         // Fetch user profile to check for blocked status
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
@@ -30,26 +33,38 @@ const ProtectedRoute: React.FC = () => {
           .single();
 
         if (profileError) {
-          console.error("Error fetching profile for auth check:", profileError);
+          console.error("ProtectedRoute: Error fetching profile for auth check:", profileError);
           showError("Failed to load user profile. Please try logging in again.");
           await supabase.auth.signOut(); // Sign out if profile can't be fetched
           navigate("/login");
+          setLoading(false);
           return;
         }
 
-        if (profile && profile.is_blocked) {
+        if (!profile) {
+          console.error("ProtectedRoute: Profile not found for user ID:", session.user.id);
+          showError("Failed to load user profile. Profile data is missing. Please try logging in again.");
+          await supabase.auth.signOut(); // Sign out if profile is missing
+          navigate("/login");
+          setLoading(false);
+          return;
+        }
+
+        if (profile.is_blocked) {
+          console.warn("ProtectedRoute: User account is blocked for ID:", session.user.id);
           showError("Your account has been blocked. Please contact support.");
           await supabase.auth.signOut(); // Sign out blocked user
           navigate("/login");
+          setLoading(false);
           return;
         }
 
+        console.log("ProtectedRoute: User authenticated and profile loaded successfully for ID:", session.user.id);
         setIsAuthenticated(true);
         // Update user streak on authenticated access (only if not blocked)
-        if (profile) {
-          await updateUserStreak(session.user.id, profile.current_streak, profile.last_activity_date);
-        }
+        await updateUserStreak(session.user.id, profile.current_streak, profile.last_activity_date);
       } else {
+        console.log("ProtectedRoute: No active session found, redirecting to login.");
         setIsAuthenticated(false);
         navigate("/login");
       }
@@ -59,6 +74,7 @@ const ProtectedRoute: React.FC = () => {
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("ProtectedRoute: Auth state changed. Event:", _event, "Session:", session);
       if (session) {
         // Re-run full auth check including blocked status if session changes
         checkAuth();
