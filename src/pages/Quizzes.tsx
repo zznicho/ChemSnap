@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import QuizCard from "@/components/QuizCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"; // Import DialogDescription
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -386,6 +386,9 @@ const Quizzes = () => {
                     <DialogContent className="sm:max-w-[425px]">
                       <DialogHeader>
                         <DialogTitle>Create New Quiz</DialogTitle>
+                        <DialogDescription>
+                          Fill out the form to create a new quiz.
+                        </DialogDescription>
                       </DialogHeader>
                       <CreateQuizForm
                         onQuizCreated={fetchQuizzesData}
@@ -552,6 +555,9 @@ const Quizzes = () => {
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Add Question to Quiz</DialogTitle>
+              <DialogDescription>
+                Add a new question to the selected quiz.
+              </DialogDescription>
             </DialogHeader>
             <Form {...questionForm}>
               <form onSubmit={questionForm.handleSubmit(onAddQuestion)} className="space-y-4">
