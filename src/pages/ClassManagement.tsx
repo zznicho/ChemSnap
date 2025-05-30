@@ -109,7 +109,7 @@ const ClassManagement = () => {
           total_points,
           file_url
         ),
-        class_enrollments(count)
+        class_enrollments!class_id_fkey(count)
       `)
       .order("created_at", { ascending: false });
 
@@ -125,7 +125,7 @@ const ClassManagement = () => {
     } else {
       const classesWithCounts = data.map(cls => ({
         ...cls,
-        student_count: cls.class_enrollments ? cls.class_enrollments.length : 0,
+        student_count: cls.class_enrollments && cls.class_enrollments.length > 0 ? cls.class_enrollments[0].count : 0,
       }));
       setClasses(classesWithCounts as Class[]);
     }
@@ -288,6 +288,7 @@ const ClassManagement = () => {
             <CreateAssignmentForm
               classId={selectedClassIdForAssignment}
               onAssignmentCreated={handleAssignmentCreated}
+              onClose={() => setIsCreateAssignmentDialogOpen(false)}
             />
           </DialogContent>
         </Dialog>
