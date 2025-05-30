@@ -57,7 +57,7 @@ const Resources = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isCreateGeneralResourceDialogOpen, setIsCreateGeneralResourceDialogOpen] = useState(false);
-  const [isEditGeneralResourceDialogOpen, setIsEditGeneralResourceDialogOpen] = useState(false);
+  const [isEditGeneralResourceDialogOpen, setIsEditGeneralResourceDialogOpen] = useState(false); // New state for edit dialog
   const [selectedGeneralResource, setSelectedGeneralResource] = useState<GeneralResource | null>(null);
 
   useEffect(() => {
@@ -153,7 +153,7 @@ const Resources = () => {
   const renderGeneralResourceCard = (resource: GeneralResource) => (
     <Card key={resource.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 font-chemistry">{resource.title}</CardTitle>
+        <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">{resource.title}</CardTitle>
         {canManageResources && (
           <div className="flex space-x-2">
             <Button variant="ghost" size="icon" onClick={() => handleEditGeneralResource(resource)}>
@@ -297,7 +297,7 @@ const Resources = () => {
                   hscResources.map((resource) => (
                     <Card key={resource.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
                       <CardHeader>
-                        <CardTitle className="text-xl text-gray-900 dark:text-gray-100 font-chemistry">{resource.title}</CardTitle>
+                        <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{resource.title}</CardTitle>
                         <div className="flex flex-wrap gap-2 mt-2">
                           <Badge variant="secondary">{resource.subject}</Badge>
                           <Badge variant="secondary">{resource.year_level}</Badge>
