@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
+import { DialogDescription } from "@/components/ui/dialog"; // Import DialogDescription
 
 const quizFormSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters." }).max(100, { message: "Title cannot exceed 100 characters." }),
@@ -79,6 +80,10 @@ const CreateQuizForm = ({ onQuizCreated, onClose }: CreateQuizFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New Quiz</h2>
+        <DialogDescription>
+          Fill out the form to create a new quiz.
+        </DialogDescription>
         <FormField
           control={form.control}
           name="title"

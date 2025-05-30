@@ -1,7 +1,7 @@
 import { Calendar } from "@/components/ui/calendar";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"; // Import DialogDescription
 import CreateEventForm from "@/components/CreateEventForm";
 import CreateAssignmentForm from "@/components/CreateAssignmentForm"; // Import CreateAssignmentForm
 import { supabase } from "@/integrations/supabase/client";
@@ -290,6 +290,9 @@ const CalendarPage = () => {
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
                     <DialogTitle>Create Calendar Event</DialogTitle>
+                    <DialogDescription>
+                      Fill out the form to create a new calendar event.
+                    </DialogDescription>
                   </DialogHeader>
                   <CreateEventForm onEventCreated={fetchCalendarItems} onClose={() => setIsCreateEventDialogOpen(false)} />
                 </DialogContent>
@@ -305,6 +308,9 @@ const CalendarPage = () => {
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Create New Assignment</DialogTitle>
+                      <DialogDescription>
+                        Fill out the form to create a new assignment for your class.
+                      </DialogDescription>
                     </DialogHeader>
                     <CreateAssignmentForm onAssignmentCreated={fetchCalendarItems} onClose={() => setIsCreateAssignmentDialogOpen(false)} />
                   </DialogContent>
