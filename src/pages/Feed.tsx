@@ -222,7 +222,7 @@ const SocialFeed = () => {
                         className="w-10 h-10 rounded-full object-cover"
                       />
                       <div>
-                        <CardTitle className="text-lg text-gray-900 dark:text-gray-100 group-hover:underline font-chemistry">{post.profiles?.full_name || "Unknown User"}</CardTitle>
+                        <CardTitle className="text-lg text-gray-900 dark:text-gray-100 group-hover:underline">{post.profiles?.full_name || "Unknown User"}</CardTitle>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(post.created_at).toLocaleString()}</p>
                       </div>
                     </Link>
