@@ -105,206 +105,208 @@ const CreateHSCResourceForm = ({ onResourceCreated }: CreateHSCResourceFormProps
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New HSC Resource</h2>
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Resource Title</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., Year 12 Chemistry Notes - Module 5" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="subject"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Subject</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+        <div className="max-h-[70vh] overflow-y-auto pr-2 space-y-4"> {/* Added scrollable div */}
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Resource Title</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select subject" />
-                  </SelectTrigger>
+                  <Input placeholder="e.g., Year 12 Chemistry Notes - Module 5" {...field} />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="chemistry">Chemistry</SelectItem>
-                  <SelectItem value="biology">Biology</SelectItem>
-                  <SelectItem value="physics">Physics</SelectItem>
-                  <SelectItem value="math">Math</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="year_level"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Year Level</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select year level" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="year_7">Year 7</SelectItem>
-                  <SelectItem value="year_8">Year 8</SelectItem>
-                  <SelectItem value="year_9">Year 9</SelectItem>
-                  <SelectItem value="year_10">Year 10</SelectItem>
-                  <SelectItem value="year_11">Year 11</SelectItem>
-                  <SelectItem value="year_12">Year 12</SelectItem>
-                  <SelectItem value="university">University</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="resource_type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Resource Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select resource type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="notes">Notes</SelectItem>
-                  <SelectItem value="past_papers">Past Papers</SelectItem>
-                  <SelectItem value="worksheets">Worksheets</SelectItem>
-                  <SelectItem value="videos">Videos</SelectItem>
-                  <SelectItem value="articles">Articles</SelectItem>
-                  <SelectItem value="quizzes">Quizzes</SelectItem>
-                  <SelectItem value="links">Links</SelectItem>
-                  <SelectItem value="documents">Documents</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Text Content (Optional)</FormLabel>
-              <FormControl>
-                <RichTextEditor
-                  value={field.value || ""}
-                  onChange={field.onChange}
-                  placeholder="Enter text content for the resource..."
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormItem>
-          <FormLabel>Upload File (Optional)</FormLabel>
-          <FormControl>
-            <Input
-              type="file"
-              onChange={(e) => setSelectedFile(e.target.files ? e.target.files[0] : null)}
-              disabled={uploadingFile || isSubmitting}
-            />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-        <FormField
-          control={form.control}
-          name="file_url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Or File URL (Optional)</FormLabel>
-              <FormControl>
-                <Input type="url" placeholder="https://example.com/resource.pdf" {...field} disabled={!!selectedFile || uploadingFile || isSubmitting} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="tags"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tags (comma-separated, Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., module 5, organic, reactions" {...field} value={Array.isArray(field.value) ? field.value.join(', ') : field.value} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="difficulty_level"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Difficulty Level (Optional)</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select difficulty" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="beginner">Beginner</SelectItem>
-                  <SelectItem value="intermediate">Intermediate</SelectItem>
-                  <SelectItem value="advanced">Advanced</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="syllabus_point"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Syllabus Point (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., CH12-13" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="is_free"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>
-                  Mark as Free Resource
-                </FormLabel>
                 <FormMessage />
-              </div>
-            </FormItem>
-          )}
-        />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="subject"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Subject</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select subject" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="chemistry">Chemistry</SelectItem>
+                    <SelectItem value="biology">Biology</SelectItem>
+                    <SelectItem value="physics">Physics</SelectItem>
+                    <SelectItem value="math">Math</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="year_level"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Year Level</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select year level" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="year_7">Year 7</SelectItem>
+                    <SelectItem value="year_8">Year 8</SelectItem>
+                    <SelectItem value="year_9">Year 9</SelectItem>
+                    <SelectItem value="year_10">Year 10</SelectItem>
+                    <SelectItem value="year_11">Year 11</SelectItem>
+                    <SelectItem value="year_12">Year 12</SelectItem>
+                    <SelectItem value="university">University</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="resource_type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Resource Type</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select resource type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="notes">Notes</SelectItem>
+                    <SelectItem value="past_papers">Past Papers</SelectItem>
+                    <SelectItem value="worksheets">Worksheets</SelectItem>
+                    <SelectItem value="videos">Videos</SelectItem>
+                    <SelectItem value="articles">Articles</SelectItem>
+                    <SelectItem value="quizzes">Quizzes</SelectItem>
+                    <SelectItem value="links">Links</SelectItem>
+                    <SelectItem value="documents">Documents</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="content"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Text Content (Optional)</FormLabel>
+                <FormControl>
+                  <RichTextEditor
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    placeholder="Enter text content for the resource..."
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormItem>
+            <FormLabel>Upload File (Optional)</FormLabel>
+            <FormControl>
+              <Input
+                type="file"
+                onChange={(e) => setSelectedFile(e.target.files ? e.target.files[0] : null)}
+                disabled={uploadingFile || isSubmitting}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+          <FormField
+            control={form.control}
+            name="file_url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Or File URL (Optional)</FormLabel>
+                <FormControl>
+                  <Input type="url" placeholder="https://example.com/resource.pdf" {...field} disabled={!!selectedFile || uploadingFile || isSubmitting} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="tags"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tags (comma-separated, Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g., module 5, organic, reactions" {...field} value={Array.isArray(field.value) ? field.value.join(', ') : field.value} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="difficulty_level"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Difficulty Level (Optional)</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select difficulty" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="beginner">Beginner</SelectItem>
+                    <SelectItem value="intermediate">Intermediate</SelectItem>
+                    <SelectItem value="advanced">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="syllabus_point"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Syllabus Point (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g., CH12-13" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="is_free"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    Mark as Free Resource
+                  </FormLabel>
+                  <FormMessage />
+                </div>
+              </FormItem>
+            )}
+          />
+        </div>
         {(uploadingFile || isSubmitting) && <p className="text-sm text-gray-500">Processing resource...</p>}
         {uploadError && <p className="text-sm text-red-500">{uploadError}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting || uploadingFile}>

@@ -139,110 +139,111 @@ const CreateGeneralResourceForm = ({ initialData, onResourceSaved, onClose }: Cr
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New General Resource</h2>
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Resource Title</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., Advanced Spectroscopy Guide" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Resource Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+        <div className="max-h-[70vh] overflow-y-auto pr-2 space-y-4"> {/* Added scrollable div */}
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Resource Title</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select resource type" />
-                  </SelectTrigger>
+                  <Input placeholder="e.g., Advanced Spectroscopy Guide" {...field} />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="past_papers">Past Papers & Textbooks</SelectItem>
-                  <SelectItem value="university_info">University Information</SelectItem>
-                  <SelectItem value="career_paths">Career Paths</SelectItem>
-                  <SelectItem value="formula_sheets">Formula Sheets</SelectItem>
-                  <SelectItem value="periodic_table">Periodic Table Info</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Resource Type</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select resource type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="past_papers">Past Papers & Textbooks</SelectItem>
+                    <SelectItem value="university_info">University Information</SelectItem>
+                    <SelectItem value="career_paths">Career Paths</SelectItem>
+                    <SelectItem value="formula_sheets">Formula Sheets</SelectItem>
+                    <SelectItem value="periodic_table">Periodic Table Info</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Tabs defaultValue={activeTab} className="w-full" onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="text">Text Content</TabsTrigger>
-            <TabsTrigger value="link">Link URL</TabsTrigger>
-            <TabsTrigger value="image">Image</TabsTrigger>
-          </TabsList>
-          <TabsContent value="text" className="mt-4">
-            <FormField
-              control={form.control}
-              name="content"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Text Content (Optional)</FormLabel>
-                  <FormControl>
-                    <RichTextEditor placeholder="Enter detailed content for the resource..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </TabsContent>
-          <TabsContent value="link" className="mt-4">
-            <FormField
-              control={form.control}
-              name="link_url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Link URL (Optional)</FormLabel>
-                  <FormControl>
-                    <Input type="url" placeholder="https://example.com/resource.pdf" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </TabsContent>
-          <TabsContent value="image" className="mt-4">
-            <FormItem>
-              <FormLabel>Upload Image (Optional)</FormLabel>
-              <FormControl>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setSelectedImageFile(e.target.files ? e.target.files[0] : null)}
-                  disabled={uploadingFile || isSubmitting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-            <FormField
-              control={form.control}
-              name="image_url"
-              render={({ field }) => (
-                <FormItem className="mt-2">
-                  <FormLabel>Or Image URL (Optional)</FormLabel>
-                  <FormControl>
-                    <Input type="url" placeholder="https://example.com/image.jpg" {...field} disabled={!!selectedImageFile || uploadingFile || isSubmitting} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </TabsContent>
-        </Tabs>
-
+          <Tabs defaultValue={activeTab} className="w-full" onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="text">Text Content</TabsTrigger>
+              <TabsTrigger value="link">Link URL</TabsTrigger>
+              <TabsTrigger value="image">Image</TabsTrigger>
+            </TabsList>
+            <TabsContent value="text" className="mt-4">
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Text Content (Optional)</FormLabel>
+                    <FormControl>
+                      <RichTextEditor placeholder="Enter detailed content for the resource..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </TabsContent>
+            <TabsContent value="link" className="mt-4">
+              <FormField
+                control={form.control}
+                name="link_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Link URL (Optional)</FormLabel>
+                    <FormControl>
+                      <Input type="url" placeholder="https://example.com/resource.pdf" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </TabsContent>
+            <TabsContent value="image" className="mt-4">
+              <FormItem>
+                <FormLabel>Upload Image (Optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setSelectedImageFile(e.target.files ? e.target.files[0] : null)}
+                    disabled={uploadingFile || isSubmitting}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+              <FormField
+                control={form.control}
+                name="image_url"
+                render={({ field }) => (
+                  <FormItem className="mt-2">
+                    <FormLabel>Or Image URL (Optional)</FormLabel>
+                    <FormControl>
+                      <Input type="url" placeholder="https://example.com/image.jpg" {...field} disabled={!!selectedImageFile || uploadingFile || isSubmitting} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
         {(uploadingFile || isSubmitting) && <p className="text-sm text-gray-500">Processing resource...</p>}
         {uploadError && <p className="text-sm text-red-500">{uploadError}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting || uploadingFile}>
