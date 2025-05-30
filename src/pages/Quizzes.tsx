@@ -133,8 +133,10 @@ const Quizzes = () => {
 
   const fetchQuizzesData = useCallback(async () => {
     setLoadingQuizzes(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const { data: { user }, error: currentUserError } = await supabase.auth.getUser();
+    if (currentUserError || !user) {
+      showError("User not logged in for fetching quizzes.");
+      console.error("Error getting current user:", currentUserError);
       setLoadingQuizzes(false);
       return;
     }
