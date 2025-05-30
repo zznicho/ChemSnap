@@ -228,7 +228,7 @@ const Home = () => {
               className="w-16 h-16 rounded-full object-cover"
             />
             <div>
-              <CardTitle className="text-xl text-gray-900 dark:text-gray-100 font-chemistry">{userProfile.full_name}</CardTitle>
+              <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{userProfile.full_name}</CardTitle>
               <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">Role: {userProfile.role}</p>
               {userProfile.role === "student" && (
                 <p className="text-sm text-gray-600 dark:text-gray-400">Current Streak: {userProfile.current_streak} days 🔥</p>
