@@ -327,10 +327,14 @@ const Quizzes = () => {
     );
   }
 
+  if (userRole !== "admin") {
+    return null; // Should have been redirected by now
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center p-4 pb-20">
       <div className="w-full max-w-3xl">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100 font-chemistry">Chemistry Quizzes</h1>
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">Chemistry Quizzes</h1>
         <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
           Test your knowledge with interactive quizzes or manage your own!
         </p>
@@ -347,7 +351,7 @@ const Quizzes = () => {
           </TabsList>
 
           <TabsContent value="available" className="mt-4">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-chemistry">Explore Quizzes</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Explore Quizzes</h2>
             {loadingQuizzes ? (
               <p className="text-center text-gray-600 dark:text-gray-400 mt-6">Loading quizzes...</p>
             ) : (
@@ -375,7 +379,7 @@ const Quizzes = () => {
           {(userRole === "teacher" || userRole === "admin") && (
             <>
               <TabsContent value="manage" className="mt-4">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-chemistry">Manage Your Quizzes</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Manage Your Quizzes</h2>
                 <div className="mb-8">
                   <Dialog open={isCreateQuizDialogOpen} onOpenChange={setIsCreateQuizDialogOpen}>
                     <DialogTrigger asChild>
@@ -476,7 +480,7 @@ const Quizzes = () => {
               </TabsContent>
 
               <TabsContent value="analytics" className="mt-4">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 font-chemistry">Quiz Analytics</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Quiz Analytics</h2>
                 <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
                   View performance data for quizzes you have created.
                 </p>
@@ -503,7 +507,7 @@ const Quizzes = () => {
                               <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{quiz.title}</CardTitle>
                               {userRole === "admin" && quiz.profiles?.full_name && (
                                 <p className="text-sm text-gray-500 dark:text-gray-400">Created by: {quiz.profiles.full_name}</p>
-                              )}
+                            )}
                               <div className="flex flex-wrap gap-2 mt-2 text-sm text-gray-600 dark:text-gray-400">
                                 <Badge variant="secondary">{quiz.subject}</Badge>
                                 {quiz.difficulty && <Badge variant="secondary">{quiz.difficulty}</Badge>}
