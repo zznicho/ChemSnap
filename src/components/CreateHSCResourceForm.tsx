@@ -4,20 +4,20 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import RichTextEditor from "@/components/RichTextEditor"; // Import RichTextEditor
 
 const resourceFormSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters." }).max(200, { message: "Title cannot exceed 200 characters." }),
   subject: z.string().min(1, { message: "Subject is required." }),
   year_level: z.string().min(1, { message: "Year level is required." }),
   resource_type: z.string().min(1, { message: "Resource type is required." }),
-  content: z.string().max(2000, { message: "Content cannot exceed 2000 characters." }).optional(),
+  content: z.string().max(5000, { message: "Content cannot exceed 5000 characters." }).optional(), // Increased max length
   file_url: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal("")),
   tags: z.string().optional().transform(val => val ? val.split(',').map(s => s.trim()).filter(Boolean) : []),
   difficulty_level: z.string().optional(),
@@ -200,7 +200,11 @@ const CreateHSCResourceForm = ({ onResourceCreated }: CreateHSCResourceFormProps
             <FormItem>
               <FormLabel>Text Content (Optional)</FormLabel>
               <FormControl>
-                <Textarea placeholder="Enter text content for the resource..." className="min-h-[100px] resize-none" {...field} />
+                <RichTextEditor
+                  value={field.value || ""}
+                  onChange={field.onChange}
+                  placeholder="Enter text content for the resource..."
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -3,16 +3,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import RichTextEditor from "@/components/RichTextEditor"; // Import RichTextEditor
 
 const formSchema = z.object({
-  content_text: z.string().max(500, { message: "Post content cannot exceed 500 characters." }).optional(),
+  content_text: z.string().max(5000, { message: "Post content cannot exceed 5000 characters." }).optional(), // Increased max length for rich text
   content_image_url: z.string().url({ message: "Please enter a valid image URL." }).optional().or(z.literal("")),
   content_video_url: z.string().url({ message: "Please enter a valid video URL." }).optional().or(z.literal("")),
 }).refine((data) => data.content_text || data.content_image_url || data.content_video_url, {
@@ -27,7 +27,7 @@ const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
-  const [activeTab, setActiveTab] = useState("text"); // State to manage active tab
+  const [activeTab, setActiveTab] = useState("text");
 
   const { uploadFile, loading: uploadingFile, error: uploadError } = useFileUpload("public_files");
 
@@ -122,10 +122,10 @@ const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
                 <FormItem>
                   <FormLabel>Text Content</FormLabel>
                   <FormControl>
-                    <Textarea
+                    <RichTextEditor
+                      value={field.value || ""}
+                      onChange={field.onChange}
                       placeholder="What's on your mind, ChemSnap!?"
-                      className="min-h-[100px] resize-none"
-                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
