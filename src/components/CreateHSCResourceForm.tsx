@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -29,10 +29,24 @@ const resourceFormSchema = z.object({
 });
 
 interface CreateHSCResourceFormProps {
-  onResourceCreated: () => void;
+  initialData?: {
+    id?: string;
+    title: string;
+    subject: string;
+    year_level: string;
+    resource_type: string;
+    content: string | null;
+    file_url: string | null;
+    tags: string[] | null;
+    difficulty_level: string | null;
+    syllabus_point: string | null;
+    is_free: boolean;
+  };
+  onResourceSaved: () => void;
+  onClose: () => void;
 }
 
-const CreateHSCResourceForm = ({ onResourceCreated }: CreateHSCResourceFormProps) => {
+const CreateHSCResourceForm = ({ initialData, onResourceSaved, onClose }: CreateHSCResourceFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { uploadFile, loading: uploadingFile, error: uploadError } = useFileUpload("hsc_resources_files");
@@ -40,18 +54,35 @@ const CreateHSCResourceForm = ({ onResourceCreated }: CreateHSCResourceFormProps
   const form = useForm<z.infer<typeof resourceFormSchema>>({
     resolver: zodResolver(resourceFormSchema),
     defaultValues: {
-      title: "",
-      subject: "",
-      year_level: "",
-      resource_type: "",
-      content: "",
-      file_url: "",
-      tags: [],
-      difficulty_level: "",
-      syllabus_point: "",
-      is_free: true,
+      title: initialData?.title || "",
+      subject: initialData?.subject || "",
+      year_level: initialData?.year_level || "",
+      resource_type: initialData?.resource_type || "",
+      content: initialData?.content || "",
+      file_url: initialData?.file_url || "",
+      tags: initialData?.tags || [],
+      difficulty_level: initialData?.difficulty_level || "",
+      syllabus_point: initialData?.syllabus_point || "",
+      is_free: initialData?.is_free ?? true,
     },
   });
+
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        title: initialData.title,
+        subject: initialData.subject,
+        year_level: initialData.year_level,
+        resource_type: initialData.resource_type,
+        content: initialData.content || "",
+        file_url: initialData.file_url || "",
+        tags: initialData.tags ? initialData.tags.join(', ') : "",
+        difficulty_level: initialData.difficulty_level || "",
+        syllabus_point: initialData.syllabus_point || "",
+        is_free: initialData.is_free,
+      });
+    }
+  }, [initialData, form]);
 
   const onSubmit = async (values: z.infer<typeof resourceFormSchema>) => {
     setIsSubmitting(true);
@@ -69,29 +100,44 @@ const CreateHSCResourceForm = ({ onResourceCreated }: CreateHSCResourceFormProps
         }
       }
 
-      const { error } = await supabase
-        .from("hsc_resources")
-        .insert({
-          title: values.title,
-          subject: values.subject,
-          year_level: values.year_level,
-          resource_type: values.resource_type,
-          content: values.content || null,
-          file_url: resourceFileUrl,
-          tags: values.tags,
-          difficulty_level: values.difficulty_level || null,
-          syllabus_point: values.syllabus_point || null,
-          is_free: values.is_free,
-        });
+      const resourceData = {
+        title: values.title,
+        subject: values.subject,
+        year_level: values.year_level,
+        resource_type: values.resource_type,
+        content: values.content || null,
+        file_url: resourceFileUrl,
+        tags: values.tags,
+        difficulty_level: values.difficulty_level || null,
+        syllabus_point: values.syllabus_point || null,
+        is_free: values.is_free,
+      };
+
+      let error;
+      if (initialData?.id) {
+        // Update existing resource
+        const { error: updateError } = await supabase
+          .from("hsc_resources")
+          .update(resourceData)
+          .eq("id", initialData.id);
+        error = updateError;
+      } else {
+        // Insert new resource
+        const { error: insertError } = await supabase
+          .from("hsc_resources")
+          .insert(resourceData);
+        error = insertError;
+      }
 
       if (error) {
-        showError("Failed to create resource: " + error.message);
-        console.error("Error creating resource:", error);
+        showError("Failed to save resource: " + error.message);
+        console.error("Error saving resource:", error);
       } else {
-        showSuccess("Resource created successfully!");
+        showSuccess("Resource saved successfully!");
         form.reset();
         setSelectedFile(null);
-        onResourceCreated();
+        onResourceSaved();
+        onClose();
       }
     } catch (error: any) {
       showError("An unexpected error occurred: " + error.message);
@@ -104,7 +150,7 @@ const CreateHSCResourceForm = ({ onResourceCreated }: CreateHSCResourceFormProps
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New HSC Resource</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{initialData ? "Edit HSC Resource" : "Create New HSC Resource"}</h2>
         <div className="max-h-[70vh] overflow-y-auto pr-2 space-y-4"> {/* Added scrollable div */}
           <FormField
             control={form.control}
@@ -310,7 +356,7 @@ const CreateHSCResourceForm = ({ onResourceCreated }: CreateHSCResourceFormProps
         {(uploadingFile || isSubmitting) && <p className="text-sm text-gray-500">Processing resource...</p>}
         {uploadError && <p className="text-sm text-red-500">{uploadError}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting || uploadingFile}>
-          {isSubmitting || uploadingFile ? "Creating..." : "Create Resource"}
+          {isSubmitting || uploadingFile ? "Saving..." : (initialData ? "Update Resource" : "Create Resource")}
         </Button>
       </form>
     </Form>
