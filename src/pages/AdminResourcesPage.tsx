@@ -158,7 +158,9 @@ const AdminResourcesPage = () => {
               <DialogHeader>
                 <DialogTitle>Create New HSC Resource</DialogTitle>
               </DialogHeader>
-              <CreateHSCResourceForm onResourceSaved={() => {
+              <CreateHSCResourceForm
+                userRole={userRole} // Pass userRole
+                onResourceSaved={() => {
                 setIsCreateResourceDialogOpen(false);
                 fetchAllResources(); // Refresh resources after creation
               }} onClose={() => setIsCreateResourceDialogOpen(false)} />
@@ -245,6 +247,7 @@ const AdminResourcesPage = () => {
               <DialogTitle>Edit HSC Resource</DialogTitle>
             </DialogHeader>
             <CreateHSCResourceForm
+              userRole={userRole} // Pass userRole
               initialData={selectedResource}
               onResourceSaved={() => {
                 setIsEditResourceDialogOpen(false);

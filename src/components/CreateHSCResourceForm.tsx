@@ -44,9 +44,10 @@ interface CreateHSCResourceFormProps {
   };
   onResourceSaved: () => void;
   onClose: () => void;
+  userRole: string | null; // Add userRole prop
 }
 
-const CreateHSCResourceForm = ({ initialData, onResourceSaved, onClose }: CreateHSCResourceFormProps) => {
+const CreateHSCResourceForm = ({ initialData, onResourceSaved, onClose, userRole }: CreateHSCResourceFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { uploadFile, loading: uploadingFile, error: uploadError } = useFileUpload("hsc_resources_files");
@@ -86,6 +87,12 @@ const CreateHSCResourceForm = ({ initialData, onResourceSaved, onClose }: Create
 
   const onSubmit = async (values: z.infer<typeof resourceFormSchema>) => {
     setIsSubmitting(true);
+    if (userRole !== "admin") {
+      showError("Access Denied: Only administrators can create or edit HSC resources.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       let resourceFileUrl = values.file_url || null;
 
