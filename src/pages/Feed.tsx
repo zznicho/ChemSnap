@@ -77,7 +77,7 @@ const SocialFeed = () => {
           full_name,
           profile_picture_url
         ),
-        likes (id, user_id),
+        likes!likes_post_id_fkey (id, user_id),
         comments (id)
       `)
       .order("created_at", { ascending: false });
