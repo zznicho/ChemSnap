@@ -1,19 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import RichTextEditor from "@/components/RichTextEditor"; // Import RichTextEditor
 
 const newsArticleFormSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters." }).max(200, { message: "Title cannot exceed 200 characters." }),
-  content: z.string().max(2000, { message: "Content cannot exceed 2000 characters." }).optional(),
+  content: z.string().max(5000, { message: "Content cannot exceed 5000 characters." }).optional(), // Increased max length
   image_url: z.string().url({ message: "Please enter a valid image URL." }).optional().or(z.literal("")),
   file_url: z.string().url({ message: "Please enter a valid file URL." }).optional().or(z.literal("")),
 }).refine((data) => data.content || data.image_url || data.file_url, {
@@ -22,11 +22,18 @@ const newsArticleFormSchema = z.object({
 });
 
 interface CreateNewsArticleFormProps {
-  onArticleCreated: () => void;
+  initialData?: {
+    id?: string;
+    title: string;
+    content: string | null;
+    image_url: string | null;
+    file_url: string | null;
+  };
+  onArticleSaved: () => void;
   onClose: () => void;
 }
 
-const CreateNewsArticleForm = ({ onArticleCreated, onClose }: CreateNewsArticleFormProps) => {
+const CreateNewsArticleForm = ({ initialData, onArticleSaved, onClose }: CreateNewsArticleFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -37,12 +44,26 @@ const CreateNewsArticleForm = ({ onArticleCreated, onClose }: CreateNewsArticleF
   const form = useForm<z.infer<typeof newsArticleFormSchema>>({
     resolver: zodResolver(newsArticleFormSchema),
     defaultValues: {
-      title: "",
-      content: "",
-      image_url: "",
-      file_url: "",
+      title: initialData?.title || "",
+      content: initialData?.content || "",
+      image_url: initialData?.image_url || "",
+      file_url: initialData?.file_url || "",
     },
   });
+
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        title: initialData.title,
+        content: initialData.content || "",
+        image_url: initialData.image_url || "",
+        file_url: initialData.file_url || "",
+      });
+      if (initialData.image_url) setActiveTab("image");
+      else if (initialData.file_url) setActiveTab("file");
+      else setActiveTab("text");
+    }
+  }, [initialData, form]);
 
   const onSubmit = async (values: z.infer<typeof newsArticleFormSchema>) => {
     setIsSubmitting(true);
@@ -80,25 +101,39 @@ const CreateNewsArticleForm = ({ onArticleCreated, onClose }: CreateNewsArticleF
         }
       }
 
-      const { error } = await supabase
-        .from("news_articles")
-        .insert({
-          title: values.title,
-          content: values.content || null,
-          image_url: imageUrl,
-          file_url: fileUrl,
-          author_id: user.id,
-        });
+      const articleData = {
+        title: values.title,
+        content: values.content || null,
+        image_url: imageUrl,
+        file_url: fileUrl,
+        author_id: user.id,
+      };
+
+      let error;
+      if (initialData?.id) {
+        // Update existing article
+        const { error: updateError } = await supabase
+          .from("news_articles")
+          .update(articleData)
+          .eq("id", initialData.id);
+        error = updateError;
+      } else {
+        // Insert new article
+        const { error: insertError } = await supabase
+          .from("news_articles")
+          .insert(articleData);
+        error = insertError;
+      }
 
       if (error) {
-        showError("Failed to create news article: " + error.message);
-        console.error("Error creating news article:", error);
+        showError("Failed to save news article: " + error.message);
+        console.error("Error saving news article:", error);
       } else {
-        showSuccess("News article created successfully!");
+        showSuccess("News article saved successfully!");
         form.reset();
         setSelectedImageFile(null);
         setSelectedFile(null);
-        onArticleCreated();
+        onArticleSaved();
         onClose();
       }
     } catch (error: any) {
@@ -126,7 +161,7 @@ const CreateNewsArticleForm = ({ onArticleCreated, onClose }: CreateNewsArticleF
           )}
         />
 
-        <Tabs defaultValue="text" className="w-full" onValueChange={setActiveTab}>
+        <Tabs defaultValue={activeTab} className="w-full" onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="text">Text</TabsTrigger>
             <TabsTrigger value="image">Image</TabsTrigger>
@@ -140,10 +175,10 @@ const CreateNewsArticleForm = ({ onArticleCreated, onClose }: CreateNewsArticleF
                 <FormItem>
                   <FormLabel>Text Content (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea
+                    <RichTextEditor
+                      value={field.value || ""}
+                      onChange={field.onChange}
                       placeholder="Write your news article content here..."
-                      className="min-h-[100px] resize-none"
-                      {...field}
                     />
                   </FormControl>
                   <FormMessage />

@@ -11,10 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import RichTextEditor from "@/components/RichTextEditor"; // Import RichTextEditor
 
 const generalResourceFormSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters." }).max(200, { message: "Title cannot exceed 200 characters." }),
-  content: z.string().max(2000, { message: "Content cannot exceed 2000 characters." }).optional(),
+  content: z.string().max(5000, { message: "Content cannot exceed 5000 characters." }).optional(), // Increased max length
   type: z.string().min(1, { message: "Resource type is required." }),
   link_url: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal("")),
   image_url: z.string().url({ message: "Please enter a valid image URL." }).optional().or(z.literal("")),
@@ -137,6 +138,7 @@ const CreateGeneralResourceForm = ({ initialData, onResourceSaved, onClose }: Cr
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New General Resource</h2>
         <FormField
           control={form.control}
           name="title"
@@ -190,7 +192,7 @@ const CreateGeneralResourceForm = ({ initialData, onResourceSaved, onClose }: Cr
                 <FormItem>
                   <FormLabel>Text Content (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Enter detailed content for the resource..." className="min-h-[100px] resize-none" {...field} />
+                    <RichTextEditor placeholder="Enter detailed content for the resource..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
