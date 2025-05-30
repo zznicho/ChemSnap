@@ -182,12 +182,14 @@ const CreateHSCResourceForm = ({ onResourceCreated }: CreateHSCResourceFormProps
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="notes">Notes</SelectItem>
-                  <SelectItem value="past_paper">Past Paper</SelectItem>
-                  <SelectItem value="worksheet">Worksheet</SelectItem>
-                  <SelectItem value="video">Video</SelectItem>
-                  <SelectItem value="article">Article</SelectItem>
-                  <SelectItem value="quiz">Quiz</SelectItem>
-                  <SelectItem value="link">Link</SelectItem> {/* Added 'link' */}
+                  <SelectItem value="past_papers">Past Papers</SelectItem>
+                  <SelectItem value="worksheets">Worksheets</SelectItem>
+                  <SelectItem value="videos">Videos</SelectItem>
+                  <SelectItem value="articles">Articles</SelectItem>
+                  <SelectItem value="quizzes">Quizzes</SelectItem>
+                  <SelectItem value="links">Links</SelectItem>
+                  <SelectItem value="documents">Documents</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
