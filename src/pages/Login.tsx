@@ -84,7 +84,7 @@ const Login = () => {
         emailToLogin = profileData.email;
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({
         email: emailToLogin,
         password: values.password,
       });
@@ -92,7 +92,29 @@ const Login = () => {
       if (error) {
         showError("Login failed: " + error.message);
         console.error("Login error:", error);
-      } else {
+      } else if (signInData.user) {
+        // After successful sign-in, check if the user is blocked
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("is_blocked")
+          .eq("id", signInData.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching profile after login:", profileError);
+          showError("Failed to load user profile. Please try logging in again.");
+          await supabase.auth.signOut(); // Sign out if profile can't be fetched
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (profile && profile.is_blocked) {
+          showError("Your account has been blocked. Please contact support.");
+          await supabase.auth.signOut(); // Sign out blocked user
+          setIsSubmitting(false);
+          return;
+        }
+
         showSuccess("Logged in successfully!");
         navigate("/");
       }

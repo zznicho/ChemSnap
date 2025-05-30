@@ -2,10 +2,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 
 export const updateUserStreak = async (userId: string, currentStreak: number, lastActivityDate: string | null) => {
-  // First, fetch the user's role
+  // First, fetch the user's role and blocked status
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, is_blocked")
     .eq("id", userId)
     .single();
 
@@ -14,9 +14,13 @@ export const updateUserStreak = async (userId: string, currentStreak: number, la
     return;
   }
 
-  // Only update streak for students
+  // Only update streak for students and if they are not blocked
   if (profile.role !== "student") {
     console.log(`Streak update skipped for non-student user ${userId} (Role: ${profile.role}).`);
+    return;
+  }
+  if (profile.is_blocked) {
+    console.log(`Streak update skipped for blocked user ${userId}.`);
     return;
   }
 
