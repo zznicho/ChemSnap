@@ -24,6 +24,7 @@ interface Post {
   content_text: string | null;
   content_image_url: string | null;
   content_video_url: string | null;
+  content_embed_url: string | null; // New field
   created_at: string;
   author_id: string;
   profiles: {
@@ -71,6 +72,7 @@ const SocialFeed = () => {
         content_text,
         content_image_url,
         content_video_url,
+        content_embed_url,
         created_at,
         author_id,
         profiles (
@@ -259,6 +261,18 @@ const SocialFeed = () => {
                       <video controls src={post.content_video_url} className="w-full h-auto rounded-md max-h-96">
                         Your browser does not support the video tag.
                       </video>
+                    )}
+                    {post.content_embed_url && (
+                      <div className="relative w-full" style={{ paddingTop: '56.25%' }}> {/* 16:9 Aspect Ratio */}
+                        <iframe
+                          src={post.content_embed_url}
+                          title="Embedded content"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="absolute top-0 left-0 w-full h-full rounded-md border-0"
+                          style={{ border: 'none', overflow: 'hidden' }}
+                        ></iframe>
+                      </div>
                     )}
                     <div className="flex items-center justify-between text-gray-600 dark:text-gray-400 text-sm mt-3">
                       <div className="flex items-center space-x-4">

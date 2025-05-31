@@ -15,8 +15,9 @@ const formSchema = z.object({
   content_text: z.string().max(5000, { message: "Post content cannot exceed 5000 characters." }).optional(), // Increased max length for rich text
   content_image_url: z.string().url({ message: "Please enter a valid image URL." }).optional().or(z.literal("")),
   content_video_url: z.string().url({ message: "Please enter a valid video URL." }).optional().or(z.literal("")),
-}).refine((data) => data.content_text || data.content_image_url || data.content_video_url, {
-  message: "Post cannot be empty. Please provide text, an image URL/file, or a video URL/file.",
+  content_embed_url: z.string().url({ message: "Please enter a valid embed URL." }).optional().or(z.literal("")), // New embed URL field
+}).refine((data) => data.content_text || data.content_image_url || data.content_video_url || data.content_embed_url, {
+  message: "Post cannot be empty. Please provide text, an image URL/file, a video URL/file, or an embed link.",
 });
 
 interface CreatePostFormProps {
@@ -37,6 +38,7 @@ const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
       content_text: "",
       content_image_url: "",
       content_video_url: "",
+      content_embed_url: "", // Initialize new field
     },
   });
 
@@ -53,6 +55,7 @@ const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
 
       let imageUrl = values.content_image_url || null;
       let videoUrl = values.content_video_url || null;
+      let embedUrl = values.content_embed_url || null; // Get embed URL
 
       if (selectedImageFile) {
         const uploadedImageUrl = await uploadFile(selectedImageFile, "post_images");
@@ -83,6 +86,7 @@ const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
           content_text: values.content_text || null,
           content_image_url: imageUrl,
           content_video_url: videoUrl,
+          content_embed_url: embedUrl, // Insert embed URL
         });
 
       if (error) {
@@ -109,10 +113,11 @@ const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Share Your ChemSnap! Moment</h2>
 
         <Tabs defaultValue="text" className="w-full" onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4"> {/* Increased grid columns */}
             <TabsTrigger value="text">Text</TabsTrigger>
             <TabsTrigger value="image">Image</TabsTrigger>
             <TabsTrigger value="video">Video</TabsTrigger>
+            <TabsTrigger value="embed">Embed Link</TabsTrigger> {/* New tab */}
           </TabsList>
           <TabsContent value="text" className="mt-4">
             <FormField
@@ -197,9 +202,32 @@ const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
               )}
             />
           </TabsContent>
+          <TabsContent value="embed" className="mt-4"> {/* New tab content */}
+            <FormField
+              control={form.control}
+              name="content_embed_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Embed Link</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="url"
+                      placeholder="Paste a social media post link (e.g., Instagram, TikTok)"
+                      {...field}
+                      disabled={uploadingFile || isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <p className="text-sm text-gray-500 mt-2">
+              Note: Only links from platforms that support direct embedding (e.g., Instagram, TikTok, YouTube) will display correctly.
+            </p>
+          </TabsContent>
         </Tabs>
 
-        {(uploadingFile || isSubmitting) && <p className="text-sm text-gray-500">Uploading files...</p>}
+        {(uploadingFile || isSubmitting) && <p className="text-sm text-gray-500">Processing files...</p>}
         {uploadError && <p className="text-sm text-red-500">{uploadError}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting || uploadingFile}>
           {isSubmitting || uploadingFile ? "Posting..." : "Post"}
