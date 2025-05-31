@@ -4,7 +4,7 @@ import { showError, showSuccess } from "@/utils/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CreatePostForm from "@/components/CreatePostForm";
 import CommentSection from "@/components/CommentSection";
-import { MessageSquare, Heart, Share2, Trash2 } from "lucide-react";
+import { MessageSquare, Heart, Share2, Trash2, ExternalLink } from "lucide-react"; // Added ExternalLink
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
@@ -263,15 +263,19 @@ const SocialFeed = () => {
                       </video>
                     )}
                     {post.content_embed_url && (
-                      <div className="relative w-full" style={{ paddingTop: '56.25%' }}> {/* 16:9 Aspect Ratio */}
-                        <iframe
-                          src={post.content_embed_url}
-                          title="Embedded content"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          className="absolute top-0 left-0 w-full h-full rounded-md border-0"
-                          style={{ border: 'none', overflow: 'hidden' }}
-                        ></iframe>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Embedded Content:</p>
+                        <a
+                          href={post.content_embed_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center text-blue-600 hover:underline dark:text-blue-400 text-sm"
+                        >
+                          View External Content <ExternalLink className="ml-1 h-3 w-3" />
+                        </a>
+                        <p className="text-xs text-gray-500 mt-1">
+                          (Direct embedding from this source is not supported due to security policies.)
+                        </p>
                       </div>
                     )}
                     <div className="flex items-center justify-between text-gray-600 dark:text-gray-400 text-sm mt-3">
