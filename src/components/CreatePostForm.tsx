@@ -221,9 +221,6 @@ const CreatePostForm = ({ onPostCreated }: CreatePostFormProps) => {
                 </FormItem>
               )}
             />
-            <p className="text-sm text-gray-500 mt-2">
-              Note: Only links from platforms that support direct embedding (e.g., Instagram, TikTok, YouTube) will display correctly.
-            </p>
           </TabsContent>
         </Tabs>
 
